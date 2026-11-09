@@ -1,0 +1,107 @@
+# DegenBench pre-registered pass/fail criteria.
+#
+# Committed before any result on real data exists. Any later change must be a
+# separate, dated commit with its reason in the message, and results must be
+# reported against the version that was in force when they were produced.
+
+version: 1
+
+# ---------------------------------------------------------------------------
+# Label generation
+# ---------------------------------------------------------------------------
+labels:
+  monte_carlo:
+    num_samples: 200
+    frame_rate_hz: 1.0
+    max_offset_trans_m: 0.5     # uniform per axis
+    max_offset_rot_deg: 5.0     # uniform per axis
+  # A direction is degenerate when the RMS final registration error along it,
+  # in threshold-normalized coordinates (t / 0.10 m, r / 2 deg), exceeds 1.
+  degeneracy_threshold:
+    trans_m: 0.10
+    rot_deg: 2.0
+  solvers: [point_to_plane_icp, gicp]
+  # The two solvers agree on a frame when their degenerate subspaces have the
+  # same dimension and the largest principal angle between them (normalized
+  # coordinates) is at most this.
+  solver_agreement_max_principal_angle_deg: 15.0
+
+  pass:
+    analytic_scenes:
+      # Every scene must return exactly its known number of free directions,
+      # with both solvers.
+      plane: 3
+      corridor: 1
+      cylinder: 2
+      corner: 0
+    real_frames:
+      min_solver_agreement_rate: 0.90   # disagreeing frames are flagged, not dropped
+    visual_spot_check_frames: 50
+
+# ---------------------------------------------------------------------------
+# Detector leaderboard
+# ---------------------------------------------------------------------------
+leaderboard:
+  pass:
+    min_detectors: 5
+    min_datasets: 3
+    min_lidar_types: 2
+  metrics:
+    - subspace_error_deg          # largest principal angle, predicted vs labelled
+    - per_direction_precision
+    - per_direction_recall
+    - per_direction_f1
+    - detection_delay_s           # at tunnel entry
+    - false_alarms_per_km
+    - runtime_ms_per_scan
+
+# ---------------------------------------------------------------------------
+# Trajectory definitions shared by the monitor and LIO criteria
+# ---------------------------------------------------------------------------
+trajectory:
+  # Estimated trajectories are aligned to ground truth with an SE(3) Umeyama fit
+  # on the first `alignment_window_s` seconds only, never on the whole run, so that
+  # later drift is not hidden by the alignment. The fit uses positions only, since
+  # ENWIDE and part of GEODE provide position-only total-station ground truth.
+  alignment_window_s: 10.0
+  # Drift onset: first time the aligned position error exceeds this.
+  drift_onset_position_error_m: 0.5
+  # Divergence: aligned position error exceeds this at any time, or the
+  # estimator crashes or outputs a non-finite pose.
+  divergence_position_error_m: 5.0
+  tool: evo
+  metrics: [ate_rmse_m, rpe_per_100m, end_point_error_m]
+
+# ---------------------------------------------------------------------------
+# degen_monitor
+# ---------------------------------------------------------------------------
+degen_monitor:
+  pass:
+    max_runtime_ms_per_scan: 10.0      # laptop CPU, single scan, median and p95 reported
+    # A flag counts once the monitor reports degeneracy continuously for this long.
+    min_sustained_flag_s: 1.0
+    # The sustained flag must start before stock FAST-LIO2's drift onset on the
+    # ENWIDE tunnel sequences.
+    flag_before_fastlio2_drift_onset:
+      dataset: enwide
+      sequences: [tunnel_s, tunnel_d]
+
+# ---------------------------------------------------------------------------
+# Degeneracy-aware LIO (FAST-LIO2 fork)
+# ---------------------------------------------------------------------------
+degen_lio:
+  pass:
+    no_divergence:
+      dataset: enwide
+      sequences: [tunnel_s, tunnel_d]
+      max_divergences: 0
+    wheel_fusion:
+      dataset: m3dgr
+      sequences: [corridor01, corridor02]
+      # End-point error must be lower than stock FAST-LIO2 on each sequence.
+      beats_fastlio2_end_point_error: true
+    max_added_runtime_fraction: 0.10   # vs stock FAST-LIO2, per scan
+    geode_report:
+      dataset: geode
+      sequences: shield_tunnel
+      compare_to: DeCOD published ATE   # report win or lose, no pass threshold
