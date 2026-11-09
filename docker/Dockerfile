@@ -22,6 +22,9 @@ RUN git clone --depth 1 --branch ${SMALL_GICP_VERSION} \
     && rm -rf /tmp/small_gicp \
     && ldconfig
 
+# Python tooling for dataset converters (pinned for reproducible conversion).
+RUN pip3 install --no-cache-dir --break-system-packages rosbags==0.11.8
+
 # Non-root user matching the host UID/GID, so files written to the mounted repo
 # keep the host owner. The base image's 'ubuntu' user is removed to free the IDs.
 RUN if id ubuntu >/dev/null 2>&1; then userdel -r ubuntu; fi \
