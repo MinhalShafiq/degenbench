@@ -1,0 +1,110 @@
+# Datasets
+
+DegenBench uses five public datasets. None of their raw data is redistributed
+here: download each from its own source under its own terms. DegenBench
+publishes labels, scripts and converters only.
+
+Access was checked on 2026-11-09.
+
+## Summary
+
+| Dataset | Access | License | Bag format | Survey map | Role |
+| --- | --- | --- | --- | --- | --- |
+| FusionPortableV2 | Google Drive / Baidu, no registration | Not stated | ROS 1 (`.bag`, `.7z`) | 2 maps: UGV Campus, Underground Parking (`.pcd`) | Labels; wheel fusion |
+| SubT-MRS | Google Drive, no registration | Not stated | ROS 1 | Maps listed for Cave01–04, Corridor01–02, Floor01–02 | Labels |
+| GEODE | Google Drive / Baidu (`sysu`), no registration | Not stated | ROS 1 (β, γ), ROS 2 (α) | Stairs only (Leica RTC360); download not yet confirmed | Trajectory scoring; labels on stairs |
+| ENWIDE | ETH Research Collection, DOI [10.3929/ethz-c-000787551](https://doi.org/10.3929/ethz-c-000787551) | Not stated | ROS 1 | None | Trajectory scoring in the tunnel |
+| M3DGR | OneDrive / Alipan, SHA256 checksums | MIT | ROS 1 | None | Wheel fusion in corridors |
+
+Every dataset is reachable without a request form. Only M3DGR states a
+license, so all DegenBench outputs that derive from the others are labels and
+code, never data.
+
+## FusionPortableV2
+
+- Site: <https://fusionportable.github.io/dataset/fusionportable_v2_data/>
+- Tools: <https://github.com/fusionportable/fusionportable_dataset_tools>
+- Calibration: <https://github.com/fusionportable/calibration_files>, one
+  `<frame_id>.yaml` per sensor per calibration date. Extrinsics are given as
+  `T_sensor_<frame>`, the pose of `<frame>` in the Ouster sensor frame.
+
+Label candidates are the sequences inside a mapped area:
+
+| Sequence | Platform | Map | Notes |
+| --- | --- | --- | --- |
+| `handheld_underground00` | Handheld | Underground Parking | Structureless |
+| `legged_underground00` | Legged | Underground Parking | Structureless |
+| `ugv_parking00`–`03` | UGV | Underground Parking (to confirm per sequence) | Structureless; wheel encoders |
+| `ugv_campus00`, `01` | UGV | UGV Campus | Large-scale; wheel encoders |
+
+| Sensor | Topic | Type |
+| --- | --- | --- |
+| Ouster OS1-128 | `/os_cloud_node/points` | `sensor_msgs/PointCloud2`, 10 Hz |
+| Ouster IMU | `/os_cloud_node/imu/data_raw` | `sensor_msgs/Imu` |
+| STIM300 IMU | `/stim300/imu/data_raw` | `sensor_msgs/Imu` |
+| UGV wheel encoders | `/mini_hercules/encoder` | `sensor_msgs/JointState` |
+| Legged odometry | `/unitree/body_odom` | `nav_msgs/Odometry` |
+
+Known issues:
+- The maps contain unremoved dynamic objects. The authors recommend the
+  original FusionPortable maps where a clean map is needed.
+- Vehicle ground truth was post-processed (2024-05-08) to drop high-uncertainty
+  poses, so vehicle trajectories have gaps.
+- **To verify on download:** the frame the ground-truth trajectory is expressed
+  in. The converter takes it as a parameter.
+
+## SubT-MRS
+
+- Site: <https://superodometry.com/datasets>
+- Ground truth is distributed separately; trajectories are
+  `timestamp x y z qx qy qz qw`.
+- Label candidates with maps: `Cave01`–`04`, `Corridor01`, `Corridor02`,
+  `Floor01`, `Floor02`.
+- Ground truth in degraded corridors partly relies on visual odometry, so
+  SubT-MRS frames are used for labels only, never for trajectory scoring in
+  degenerate segments.
+- **To verify on download:** whether the listed maps are the FARO survey or a
+  SLAM reconstruction. Only survey-grade maps are used for top-tier labels.
+
+## GEODE
+
+- Repository: <https://github.com/PengYu-Team/GEODE_dataset>
+- Metro tunnel ground truth is Leica MS60 prism tracking: position only.
+- Shield-tunnel sequences are `Shield1`–`Shield10` in the paper; exact folder
+  names to confirm on download.
+- **Open risk:** the stairs map (`.las`, Leica RTC360) is described in the paper
+  but not linked from the repository. If it is not downloadable, GEODE serves
+  trajectory scoring only, and the second LiDAR type for labels comes from
+  SubT-MRS (Velodyne) alongside FusionPortableV2 (Ouster).
+
+## ENWIDE
+
+- Site: <https://projects.asl.ethz.ch/datasets/enwide>
+- One smooth (`_s`) and one dynamic (`_d`) sequence per environment, e.g.
+  `2023-08-08-17-50-31-tunnel_d.bag`.
+- Ground truth: Leica MS60 total station tracking a prism, position only, TUM
+  CSV.
+- Only the IMU-to-prism extrinsics are published (CAD-derived):
+  <http://robotics.ethz.ch/~asl-datasets/2024_ICRA_ENWIDE/prism_imu_extrinsics.txt>.
+
+## M3DGR
+
+- Repository: <https://github.com/sjtuyinjie/M3DGR> (MIT)
+- Corridor sequences: `Corridor01`, `Corridor02`, `Elevator01`, with ArUco
+  ground truth evaluated by the dataset's `ArUco_evaluate.py`.
+
+| Sensor | Topic |
+| --- | --- |
+| Livox Avia | `/livox/avia/lidar` |
+| Livox Mid-360 | `/livox/mid360/lidar` |
+| Wheel odometry | `/odom`, 20 Hz |
+
+Livox topics need `livox_ros_driver` message definitions to read.
+
+## Effect on the plan
+
+- **Download risk is retired** for four of five datasets. SubT-MRS, whose
+  access was the main worry, is public on Google Drive.
+- **Label coverage** rests on the FusionPortableV2 Underground Parking
+  sequences (Ouster, three platforms) and SubT-MRS caves and corridors
+  (Velodyne). That still meets the two-LiDAR-type requirement without GEODE.
