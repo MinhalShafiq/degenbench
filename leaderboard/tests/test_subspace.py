@@ -12,12 +12,18 @@ def axes(*indices):
 
 
 def test_identical_subspaces_have_zero_error():
-    assert subspace_error_deg(axes(0, 1, 5), axes(0, 1, 5)) == pytest.approx(0.0, abs=1e-6)
+    assert subspace_error_deg(axes(0, 1, 5), axes(0, 1, 5)) == pytest.approx(0.0, abs=1e-9)
 
 
 def test_error_ignores_basis_choice():
     rotated = axes(0, 1) @ np.array([[np.cos(0.7), -np.sin(0.7)], [np.sin(0.7), np.cos(0.7)]])
-    assert subspace_error_deg(rotated, axes(0, 1)) == pytest.approx(0.0, abs=1e-6)
+    assert subspace_error_deg(rotated, axes(0, 1)) == pytest.approx(0.0, abs=1e-9)
+
+
+def test_small_angles_are_resolved():
+    tilted = np.zeros((6, 1))
+    tilted[0, 0], tilted[3, 0] = np.cos(np.radians(1e-4)), np.sin(np.radians(1e-4))
+    assert subspace_error_deg(tilted, axes(0)) == pytest.approx(1e-4, rel=1e-6)
 
 
 def test_orthogonal_subspaces_are_90_degrees():

@@ -49,4 +49,8 @@ def subspace_error_deg(predicted: np.ndarray, labelled: np.ndarray) -> float:
         return 90.0
     if qp.shape[1] == 0:
         return 0.0
-    return float(np.max(principal_angles_deg(qp, ql)))
+    # Largest angle via atan2(sin, cos): acos alone loses ~1e-6 deg near 0.
+    proj = qp.T @ ql
+    cos = np.linalg.svd(proj, compute_uv=False).min()
+    sin = np.linalg.svd(ql - qp @ proj, compute_uv=False).max()
+    return float(np.degrees(np.arctan2(sin, cos)))

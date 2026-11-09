@@ -1,10 +1,12 @@
 #include "degenbench/labeler/localizability.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <random>
 #include <stdexcept>
 
 #include <Eigen/Eigenvalues>
+#include <Eigen/SVD>
 #include <small_gicp/registration/registration_helper.hpp>
 
 namespace degenbench {
@@ -109,6 +111,51 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
 
   for (int i = 0; i < 6; ++i) label.axis_degenerate[i] = moment(i, i) > 1.0;
   return label;
+}
+
+namespace {
+
+Eigen::MatrixXd orthonormal_basis(const Eigen::MatrixXd& a) {
+  if (a.rows() != 6) throw std::invalid_argument("subspace basis must have 6 rows");
+  if (a.cols() == 0) return Eigen::MatrixXd(6, 0);
+  const Eigen::JacobiSVD<Eigen::MatrixXd> svd(a, Eigen::ComputeThinU);
+  const auto& s = svd.singularValues();
+  const double tol = 1e-9 * std::max(1.0, s[0]);
+  int rank = 0;
+  while (rank < s.size() && s[rank] > tol) ++rank;
+  return svd.matrixU().leftCols(rank);
+}
+
+}  // namespace
+
+double max_principal_angle_deg(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b) {
+  const Eigen::MatrixXd qa = orthonormal_basis(a);
+  const Eigen::MatrixXd qb = orthonormal_basis(b);
+  if (qa.cols() != qb.cols()) return 90.0;
+  if (qa.cols() == 0) return 0.0;
+  // Largest angle: its cosine is the smallest singular value of qa^T qb and its
+  // sine the largest singular value of qb's residual off span(qa). atan2 of the
+  // two stays accurate near 0, where acos alone loses ~1e-6 deg to rounding.
+  const Eigen::MatrixXd proj = qa.transpose() * qb;
+  const Eigen::MatrixXd residual = qb - qa * proj;
+  const double c = Eigen::JacobiSVD<Eigen::MatrixXd>(proj).singularValues().minCoeff();
+  const double s = Eigen::JacobiSVD<Eigen::MatrixXd>(residual).singularValues().maxCoeff();
+  return std::atan2(s, c) * 180.0 / M_PI;
+}
+
+DualSolverLabel label_frame_dual(const std::vector<Eigen::Vector3d>& map,
+                                 const std::vector<Eigen::Vector3d>& scan,
+                                 const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
+                                 double max_agreement_angle_deg) {
+  DualSolverLabel out;
+  config.solver = Solver::PointToPlaneICP;
+  out.point_to_plane_icp = label_frame(map, scan, T_map_sensor, config);
+  config.solver = Solver::GICP;  // Same seed, so both solvers see identical offsets.
+  out.gicp = label_frame(map, scan, T_map_sensor, config);
+  out.subspace_angle_deg = max_principal_angle_deg(out.point_to_plane_icp.degenerate_basis,
+                                                   out.gicp.degenerate_basis);
+  out.solvers_agree = out.subspace_angle_deg <= max_agreement_angle_deg;
+  return out;
 }
 
 }  // namespace degenbench

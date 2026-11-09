@@ -72,6 +72,27 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
                        const Eigen::Isometry3d& T_map_sensor,
                        const LabelConfig& config);
 
+/// Largest principal angle [deg] between the column spans of two 6 x k bases.
+/// A dimension mismatch returns 90; two empty subspaces return 0. Matches
+/// `degenbench_leaderboard.subspace.subspace_error_deg`.
+double max_principal_angle_deg(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b);
+
+/// Labels from both solvers on one frame, plus whether they agree.
+struct DualSolverLabel {
+  FrameLabel point_to_plane_icp;
+  FrameLabel gicp;
+  double subspace_angle_deg = 0.0;  ///< Between the two degenerate subspaces.
+  bool solvers_agree = false;
+};
+
+/// Run the probe with point-to-plane ICP and GICP on the same offsets. They agree
+/// when the subspace angle is at most `max_agreement_angle_deg` (pre-registered:
+/// 15 deg); disagreeing frames are flagged, never dropped.
+DualSolverLabel label_frame_dual(const std::vector<Eigen::Vector3d>& map,
+                                 const std::vector<Eigen::Vector3d>& scan,
+                                 const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
+                                 double max_agreement_angle_deg = 15.0);
+
 /// Pose error T_gt^-1 * T_est as [t; rotation vector].
 Vector6d pose_error(const Eigen::Isometry3d& T_gt, const Eigen::Isometry3d& T_est);
 
