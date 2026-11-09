@@ -1,0 +1,35 @@
+# Private planning material: never commit
+*Proposal*.md
+*proposal*.md
+private/
+notes/
+
+# Datasets and large artifacts: published as scripts, never raw data
+data/
+datasets/
+*.bag
+*.db3
+*.mcap
+*.pcd
+*.ply
+*.las
+*.laz
+
+# Build outputs
+build/
+install/
+log/
+.cache/
+compile_commands.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
