@@ -127,8 +127,21 @@ Checked from the trajectory files in `groundtruth/traj/` on the Drive folder:
 - Ground truth in degraded corridors partly relies on visual odometry, so
   SubT-MRS frames are used for labels only, never for trajectory scoring in
   degenerate segments.
-- **To verify on download:** whether the listed maps are the FARO survey or a
+- **To verify:** whether the listed maps are the FARO survey or a
   SLAM reconstruction. Only survey-grade maps are used for top-tier labels.
+- Downloads (checked 2026-11-10): `Cave03` is `SubT_MRS_Laurel_Caverns_Handheld3.zip`
+  (610 MB, 11 ROS 1 bags), map `lauren_cavern.pcd` (17 MB, shared by Cave01–04);
+  `Corridor01` is `SubT_MRS_Hawkins_Long_Corridor_RC.zip` (3.6 GB), map
+  `corridor01.pcd` (7.7 MB).
+- The LiDAR is stored as raw `velodyne_msgs/VelodyneScan` packets (VLP-16,
+  single strongest return) on `/cmu_rc7/velodyne_packets`; DegenBench decodes
+  them itself.
+- The ground truth that matches the Laurel Caverns bag is `ground_truth_path.csv`
+  in the ground-truth Drive folder (5 Hz, nanosecond stamps, CSV). The
+  separately listed `Cave03` trajectory starts after the bag ends.
+- Ground truth starts at the origin and is not in the map frame. The world-to-map
+  transform and GT-to-LiDAR extrinsic are estimated; see
+  `docs/results/2026-11-10-subt-mrs-laurel-caverns.md`.
 
 ## GEODE
 
