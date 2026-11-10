@@ -68,8 +68,19 @@ Checked from the trajectory files in `groundtruth/traj/` on the Drive folder:
   elsewhere: registering each scan to the survey map with the position fixed
   by ground truth. That is a lower-tier label and must be marked as such.
 - **UGV sequences have full 6-DoF poses with no gaps**, all starting at the
-  same point with different headings, so they share one world frame. Whether
-  that frame is the campus map frame is checked against the map itself.
+  same point with different headings, so they share one world frame (the INS
+  frame, from dual-antenna RTK-GNSS fused with an IMU).
+- **Trajectories and maps are in different frames, and no transform is
+  published.** Checked 2026-11-10: placed in the map files as given, no UGV or
+  underground pose has ground below it, and the nearest map point is 25–290 m
+  away. The paper confirms the three sources are independent (INS, Leica MS60
+  total station, Leica RTC360/BLK360 scans merged in Cyclone) and aligns SLAM
+  maps to the GT maps manually in CloudCompare. DegenBench therefore estimates
+  one rigid `T_map_world` per sequence by registering scans accumulated along
+  the ground truth to the survey map, and publishes that transform with its
+  residual.
+- Maps are shipped as `binary_compressed` (LZF) PCD at several resolutions;
+  the file suffix is the voxel size (`_02` = 0.2 m, `_008` = 0.08 m).
 - Timestamps carry sub-millisecond decimals. Tools that parse numbers using
   the system locale (e.g. `awk` under a decimal-comma locale) truncate them;
   use `LC_ALL=C`.

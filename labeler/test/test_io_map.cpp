@@ -60,15 +60,55 @@ TEST(Pcd, BinaryFloat64WithPadding) {
   expect_points_eq(read_pcd((dir / "a.pcd").string()), sample_points());
 }
 
-TEST(Pcd, RejectsCompressedWithHint) {
-  const auto dir = temp_dir("pcd_cmp");
-  std::ofstream(dir / "a.pcd") << "FIELDS x y z\nSIZE 4 4 4\nTYPE F F F\nPOINTS 1\nDATA binary_compressed\n";
-  try {
-    read_pcd((dir / "a.pcd").string());
-    FAIL() << "expected an exception";
-  } catch (const std::runtime_error& e) {
-    EXPECT_NE(std::string(e.what()).find("pcl_convert_pcd_ascii_binary"), std::string::npos);
+TEST(Lzf, LiteralsAndOverlappingBackReference) {
+  // "abc" as a literal run, then a 6-byte back reference at distance 3.
+  const unsigned char stream[] = {2, 'a', 'b', 'c', (4 << 5) | 0, 2};
+  const auto out = lzf_decompress(reinterpret_cast<const char*>(stream), sizeof(stream), 9);
+  EXPECT_EQ(std::string(out.begin(), out.end()), "abcabcabc");
+}
+
+TEST(Lzf, LongBackReference) {
+  // Literal 'x', then length 7 + 3 + 2 = 12 at distance 1.
+  const unsigned char stream[] = {0, 'x', (7 << 5) | 0, 3, 0};
+  const auto out = lzf_decompress(reinterpret_cast<const char*>(stream), sizeof(stream), 13);
+  EXPECT_EQ(std::string(out.begin(), out.end()), std::string(13, 'x'));
+}
+
+TEST(Lzf, RejectsCorruptStreams) {
+  const unsigned char bad_ref[] = {0, 'x', (1 << 5) | 0, 5};  // distance beyond output
+  EXPECT_THROW(lzf_decompress(reinterpret_cast<const char*>(bad_ref), sizeof(bad_ref), 4),
+               std::runtime_error);
+  const unsigned char short_out[] = {2, 'a', 'b', 'c'};
+  EXPECT_THROW(lzf_decompress(reinterpret_cast<const char*>(short_out), sizeof(short_out), 5),
+               std::runtime_error);
+}
+
+// binary_compressed with literal-only LZF (valid LZF; real files also use back
+// references, covered above) and an extra rgb field, laid out field-major.
+TEST(Pcd, BinaryCompressed) {
+  const auto pts = sample_points();
+  std::vector<char> raw;
+  for (int a = 0; a < 3; ++a)
+    for (const auto& p : pts) {
+      const float v = static_cast<float>(p[a]);
+      raw.insert(raw.end(), reinterpret_cast<const char*>(&v), reinterpret_cast<const char*>(&v) + 4);
+    }
+  for (size_t i = 0; i < pts.size(); ++i) raw.insert(raw.end(), {1, 2, 3, 4});  // rgb
+  std::vector<char> comp;
+  for (size_t i = 0; i < raw.size(); i += 32) {
+    const size_t n = std::min<size_t>(32, raw.size() - i);
+    comp.push_back(static_cast<char>(n - 1));
+    comp.insert(comp.end(), raw.begin() + i, raw.begin() + i + n);
   }
+  const auto dir = temp_dir("pcd_cmp");
+  std::ofstream f(dir / "a.pcd", std::ios::binary);
+  f << "VERSION 0.7\nFIELDS x y z rgb\nSIZE 4 4 4 4\nTYPE F F F F\nCOUNT 1 1 1 1\n"
+       "WIDTH 3\nHEIGHT 1\nPOINTS 3\nDATA binary_compressed\n";
+  const uint32_t hdr[2] = {static_cast<uint32_t>(comp.size()), static_cast<uint32_t>(raw.size())};
+  f.write(reinterpret_cast<const char*>(hdr), sizeof(hdr));
+  f.write(comp.data(), static_cast<std::streamsize>(comp.size()));
+  f.close();
+  expect_points_eq(read_pcd((dir / "a.pcd").string()), pts);
 }
 
 TEST(Frames, CsvAndBin) {

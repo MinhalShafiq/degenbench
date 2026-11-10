@@ -144,12 +144,70 @@ std::vector<Eigen::Vector3d> read_pcd(const std::string& path) {
       }
       pts.push_back(v);
     }
+  } else if (data == "binary_compressed") {
+    // uint32 compressed size, uint32 uncompressed size, LZF payload. The payload
+    // is field-major: all values of field 0, then all of field 1, and so on.
+    uint32_t sizes_hdr[2];
+    f.read(reinterpret_cast<char*>(sizes_hdr), sizeof(sizes_hdr));
+    if (!f) throw std::runtime_error(path + ": truncated compressed header");
+    std::vector<char> comp(sizes_hdr[0]);
+    f.read(comp.data(), static_cast<std::streamsize>(comp.size()));
+    if (static_cast<size_t>(f.gcount()) != comp.size()) throw std::runtime_error(path + ": truncated");
+    if (sizes_hdr[1] != static_cast<size_t>(stride) * points)
+      throw std::runtime_error(path + ": compressed size does not match header");
+    const std::vector<char> raw = lzf_decompress(comp.data(), comp.size(), sizes_hdr[1]);
+    std::vector<size_t> field_start(fields.size());
+    size_t acc = 0;
+    for (size_t i = 0; i < fields.size(); ++i) {
+      field_start[i] = acc;
+      acc += static_cast<size_t>(sizes[i]) * counts[i] * points;
+    }
+    pts.resize(points);
+    for (int a = 0; a < 3; ++a) {
+      const int i = xyz_field[a];
+      const size_t step = static_cast<size_t>(sizes[i]) * counts[i];
+      for (size_t p = 0; p < points; ++p) {
+        const char* src = raw.data() + field_start[i] + p * step;
+        if (sizes[i] == 4) { float x; std::memcpy(&x, src, 4); pts[p][a] = x; }
+        else { double x; std::memcpy(&x, src, 8); pts[p][a] = x; }
+      }
+    }
   } else {
-    throw std::runtime_error(path + ": unsupported PCD DATA '" + data +
-                             "'; convert with pcl_convert_pcd_ascii_binary <in> <out> 1");
+    throw std::runtime_error(path + ": unsupported PCD DATA '" + data + "'");
   }
   if (pts.size() != points) throw std::runtime_error(path + ": fewer points than header says");
   return pts;
+}
+
+std::vector<char> lzf_decompress(const char* in, size_t in_size, size_t expected_size) {
+  std::vector<char> out(expected_size);
+  const auto* ip = reinterpret_cast<const unsigned char*>(in);
+  const auto* const ip_end = ip + in_size;
+  size_t op = 0;
+  auto corrupt = [] { throw std::runtime_error("corrupt LZF stream"); };
+  while (ip < ip_end) {
+    unsigned ctrl = *ip++;
+    if (ctrl < 32) {  // literal run of ctrl + 1 bytes
+      const size_t len = ctrl + 1;
+      if (ip + len > ip_end || op + len > expected_size) corrupt();
+      std::memcpy(out.data() + op, ip, len);
+      ip += len;
+      op += len;
+    } else {  // back reference
+      size_t len = ctrl >> 5;
+      if (len == 7) {
+        if (ip >= ip_end) corrupt();
+        len += *ip++;
+      }
+      if (ip >= ip_end) corrupt();
+      const size_t back = ((static_cast<size_t>(ctrl & 0x1f) << 8) | *ip++) + 1;
+      len += 2;
+      if (back > op || op + len > expected_size) corrupt();
+      for (size_t k = 0; k < len; ++k, ++op) out[op] = out[op - back];  // may overlap
+    }
+  }
+  if (op != expected_size) corrupt();
+  return out;
 }
 
 void write_pcd(const std::string& path, const std::vector<Eigen::Vector3d>& points) {
