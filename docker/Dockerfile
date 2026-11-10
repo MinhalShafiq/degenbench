@@ -7,7 +7,7 @@ ARG USER_GID=1000
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential cmake git ninja-build ccache \
-        gdb clang-format vim less sudo bash-completion \
+        gdb clang-format vim less sudo bash-completion p7zip-full \
         libeigen3-dev libgtest-dev \
         python3-pip python3-numpy python3-yaml python3-pytest \
     && rm -rf /var/lib/apt/lists/*
@@ -23,7 +23,7 @@ RUN git clone --depth 1 --branch ${SMALL_GICP_VERSION} \
     && ldconfig
 
 # Python tooling for dataset converters (pinned for reproducible conversion).
-RUN pip3 install --no-cache-dir --break-system-packages rosbags==0.11.8
+RUN pip3 install --no-cache-dir --break-system-packages rosbags==0.11.8 gdown==5.2.0
 
 # Non-root user matching the host UID/GID, so files written to the mounted repo
 # keep the host owner. The base image's 'ubuntu' user is removed to free the IDs.
