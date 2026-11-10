@@ -27,9 +27,11 @@ target_link_libraries(degenbench_labeler
 )
 target_compile_options(degenbench_labeler PRIVATE -Wall -Wextra -Wpedantic)
 
-add_executable(label_sequence tools/label_sequence.cpp)
-target_link_libraries(label_sequence PRIVATE degenbench_labeler)
-target_compile_options(label_sequence PRIVATE -Wall -Wextra -Wpedantic)
+foreach(tool label_sequence register_pairs)
+  add_executable(${tool} tools/${tool}.cpp)
+  target_link_libraries(${tool} PRIVATE degenbench_labeler small_gicp::small_gicp OpenMP::OpenMP_CXX)
+  target_compile_options(${tool} PRIVATE -Wall -Wextra -Wpedantic)
+endforeach()
 
 option(DEGENBENCH_BUILD_TESTS "Build unit tests" ON)
 if(DEGENBENCH_BUILD_TESTS)

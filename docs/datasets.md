@@ -79,6 +79,29 @@ Checked from the trajectory files in `groundtruth/traj/` on the Drive folder:
   one rigid `T_map_world` per sequence by registering scans accumulated along
   the ground truth to the survey map, and publishes that transform with its
   residual.
+- **The UGV ground-truth body frame is none of the published frames.**
+  Checked on `ugv_parking02` (2026-11-10). With the published `body_imu`
+  extrinsic, scans placed by ground truth sit metres apart, and the GT
+  velocity points along body −y while the LiDAR measures +x. Two
+  diagnostics ruled out other causes: the pose convention (`T_world_body`
+  moves consistently along one axis, its inverse does not) and time offset
+  (the best fit is 0 s, ±0.2 s is worse). `3dm_imu` predicts the opposite
+  turn direction. A hand-eye fit on 80 consecutive-scan pairs
+  (`scan_pairs` → `register_pairs` → `handeye`) gives:
+
+  | Quantity | Estimate | Bootstrap ± |
+  | --- | --- | --- |
+  | Yaw | −85.4° | 1.2° |
+  | Total rotation | | 1.8° |
+  | Lever arm x, y | 0.41 m, −0.16 m | 0.25 m, 0.15 m |
+  | Lever arm z | Unobservable from planar driving, set to 0 | |
+
+  Placing scans with this extrinsic raises scan-to-scan agreement within
+  0.3 m from 68% to 81%, and GICP convergence against neighbouring scans
+  from 9/39 to 33/39 frames. The extrinsic is only good enough to
+  initialize: per-frame reference poses are refined against the survey map,
+  and the size of each refinement is published as a ground-truth quality
+  measure.
 - Maps are shipped as `binary_compressed` (LZF) PCD at several resolutions;
   the file suffix is the voxel size (`_02` = 0.2 m, `_008` = 0.08 m).
 - Timestamps carry sub-millisecond decimals. Tools that parse numbers using
