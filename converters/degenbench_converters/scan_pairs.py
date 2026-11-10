@@ -14,16 +14,13 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from rosbags.highlevel import AnyReader
-from rosbags.typesys import Stores, get_typestore
-
-from .pointcloud import decode_fields
+from .frames import open_bags, scan_points
 
 
-def dump_pairs(bag: Path, out: Path, topic: str, every: int, min_range: float, max_range: float) -> int:
+def dump_pairs(bag, out: Path, topic: str, every: int, min_range: float, max_range: float) -> int:
     out.mkdir(parents=True, exist_ok=True)
     stamps = []
-    with AnyReader([bag], default_typestore=get_typestore(Stores.ROS1_NOETIC)) as reader:
+    with open_bags(bag) as reader:
         conns = [c for c in reader.connections if c.topic == topic]
         if not conns:
             raise ValueError(f"{bag}: topic {topic} not found")
@@ -31,8 +28,7 @@ def dump_pairs(bag: Path, out: Path, topic: str, every: int, min_range: float, m
             if k % every not in (0, 1):
                 continue
             msg = reader.deserialize(raw, conn.msgtype)
-            f = decode_fields(msg, ["x", "y", "z"])
-            p = np.column_stack([f["x"], f["y"], f["z"]])
+            p, _ = scan_points(msg, conn.msgtype)
             r = np.linalg.norm(p, axis=1)
             p = p[np.isfinite(r) & (r > min_range) & (r < max_range)]
             p.astype("<f4").tofile(out / f"{k:06d}.bin")
@@ -43,14 +39,14 @@ def dump_pairs(bag: Path, out: Path, topic: str, every: int, min_range: float, m
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--bag", required=True)
+    p.add_argument("--bag", required=True, nargs="+")
     p.add_argument("--out", required=True)
     p.add_argument("--topic", default="/os_cloud_node/points")
     p.add_argument("--every", type=int, default=10)
     p.add_argument("--min-range", type=float, default=0.5)
     p.add_argument("--max-range", type=float, default=60.0)
     a = p.parse_args(argv)
-    n = dump_pairs(Path(a.bag), Path(a.out), a.topic, a.every, a.min_range, a.max_range)
+    n = dump_pairs([Path(b) for b in a.bag], Path(a.out), a.topic, a.every, a.min_range, a.max_range)
     print(f"wrote {n} scans")
     return 0 if n else 1
 

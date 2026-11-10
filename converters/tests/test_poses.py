@@ -69,3 +69,10 @@ def test_tum_round_trip(tmp_path):
     back = Trajectory.from_tum(path)
     np.testing.assert_allclose(back.positions, traj.positions)
     np.testing.assert_allclose(back.quaternions, traj.quaternions, atol=1e-9)
+
+
+def test_batch_rotation_matches_single():
+    rng = np.random.default_rng(5)
+    q = rng.normal(size=(20, 4))
+    from degenbench_converters.poses import quat_to_rot_batch
+    np.testing.assert_allclose(quat_to_rot_batch(q), np.stack([quat_to_rot(qi) for qi in q]), atol=1e-12)

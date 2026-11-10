@@ -20,6 +20,7 @@ from rosbags.highlevel import AnyReader
 from rosbags.typesys import Stores, get_typestore
 
 from .pointcloud import decode_fields
+from .velodyne import decode_scan
 from .poses import Trajectory, apply, invert, rot_to_quat
 
 
@@ -43,6 +44,32 @@ class ExtractionStats:
     stamps: list[float] = field(default_factory=list)
 
 
+def open_bags(bag) -> AnyReader:
+    """AnyReader over one bag or a list of bags (a sequence split into chunks)."""
+    bags = [Path(b) for b in bag] if isinstance(bag, (list, tuple)) else [Path(bag)]
+    return AnyReader(bags, default_typestore=get_typestore(Stores.ROS1_NOETIC))
+
+
+def scan_points(msg, msgtype: str, time_field: str = "t",
+                time_scale: float = 1e-9) -> tuple[np.ndarray, np.ndarray]:
+    """Points (N x 3, sensor frame) and absolute per-point times of one scan.
+
+    Supports sensor_msgs/PointCloud2 with a per-point time offset field (Ouster
+    't' in ns) and raw velodyne_msgs/VelodyneScan packets (VLP-16).
+    """
+    if msgtype == "velodyne_msgs/msg/VelodyneScan":
+        return decode_scan(msg)
+    if msgtype != "sensor_msgs/msg/PointCloud2":
+        raise ValueError(f"unsupported LiDAR message type {msgtype}")
+    t_ref = msg.header.stamp.sec + 1e-9 * msg.header.stamp.nanosec
+    names = [n.name for n in msg.fields]
+    want = ["x", "y", "z"] + ([time_field] if time_field in names else [])
+    f = decode_fields(msg, want)
+    pts = np.column_stack([f["x"], f["y"], f["z"]])
+    offsets = f[time_field] * time_scale if time_field in f else np.zeros(len(pts))
+    return pts, t_ref + offsets
+
+
 def deskew(points: np.ndarray, times: np.ndarray, t_ref: float, trajectory: Trajectory,
            T_gt_lidar: np.ndarray) -> np.ndarray:
     """Express points measured at `times` in the LiDAR frame at `t_ref`.
@@ -52,15 +79,12 @@ def deskew(points: np.ndarray, times: np.ndarray, t_ref: float, trajectory: Traj
     """
     uniq, inverse = np.unique(times, return_inverse=True)
     poses = trajectory.interpolate(np.concatenate([[t_ref], uniq])) @ T_gt_lidar
-    T_ref_inv = invert(poses[0])
-    out = np.empty_like(points)
-    for k, T in enumerate(poses[1:]):
-        sel = inverse == k
-        out[sel] = apply(T_ref_inv @ T, points[sel])
-    return out
+    rel = invert(poses[0]) @ poses[1:]          # (U, 4, 4): LiDAR at t_i in LiDAR at t_ref
+    rel = rel[inverse]                          # per point
+    return np.einsum("nij,nj->ni", rel[:, :3, :3], points) + rel[:, :3, 3]
 
 
-def extract_frames(bag: str | Path, trajectory: Trajectory, T_gt_lidar: np.ndarray,
+def extract_frames(bag: str | Path | list, trajectory: Trajectory, T_gt_lidar: np.ndarray,
                    out_dir: str | Path, config: ExtractionConfig) -> ExtractionStats:
     out_dir = Path(out_dir)
     (out_dir / "frames").mkdir(parents=True, exist_ok=True)
@@ -69,8 +93,7 @@ def extract_frames(bag: str | Path, trajectory: Trajectory, T_gt_lidar: np.ndarr
     period = 1.0 / config.rate_hz
     next_t = -np.inf
 
-    typestore = get_typestore(Stores.ROS1_NOETIC)
-    with AnyReader([Path(bag)], default_typestore=typestore) as reader:
+    with open_bags(bag) as reader:
         conns = [c for c in reader.connections if c.topic == config.topic]
         if not conns:
             raise ValueError(f"{bag}: topic {config.topic} not found")
@@ -81,11 +104,9 @@ def extract_frames(bag: str | Path, trajectory: Trajectory, T_gt_lidar: np.ndarr
             if t_ref < next_t:
                 continue
 
-            names = ["x", "y", "z"] + ([config.time_field] if config.deskew else [])
-            f = decode_fields(msg, names)
-            pts = np.column_stack([f["x"], f["y"], f["z"]])
-            times = t_ref + (f[config.time_field] * config.time_scale if config.deskew
-                             else np.zeros(len(pts)))
+            pts, times = scan_points(msg, conn.msgtype, config.time_field, config.time_scale)
+            if not config.deskew:
+                times = np.full(len(pts), t_ref)
             keep = np.all(np.isfinite(pts), axis=1) & (np.linalg.norm(pts, axis=1) >= config.min_range)
             pts, times = pts[keep], times[keep]
             if len(pts) == 0:
@@ -114,7 +135,7 @@ def extract_frames(bag: str | Path, trajectory: Trajectory, T_gt_lidar: np.ndarr
         for r in rows:
             f.write(f"{r[0]},{r[1]:.9f}," + ",".join(f"{v:.9f}" for v in r[2:9]) + f",{r[9]}\n")
     with open(out_dir / "extraction.yaml", "w", encoding="utf-8") as f:
-        meta = {"bag": str(bag), "config": asdict(config),
+        meta = {"bag": [str(b) for b in bag] if isinstance(bag, (list, tuple)) else str(bag), "config": asdict(config),
                 "T_gt_lidar": T_gt_lidar.tolist(),
                 "stats": {k: v for k, v in asdict(stats).items() if k != "stamps"}}
         yaml.safe_dump(meta, f, sort_keys=False)

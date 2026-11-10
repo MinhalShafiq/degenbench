@@ -25,7 +25,7 @@ from .poses import Trajectory, invert
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--bag", required=True)
+    p.add_argument("--bag", required=True, nargs="+", help="one bag, or all chunks of a sequence")
     p.add_argument("--gt", required=True, help="ground-truth trajectory, TUM format")
     p.add_argument("--out", required=True)
     p.add_argument("--topic", default="/os_cloud_node/points")
@@ -38,6 +38,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--time-field", default="t")
     p.add_argument("--time-scale", type=float, default=1e-9)
     p.add_argument("--no-deskew", action="store_true")
+    p.add_argument("--max-gt-gap", type=float, default=0.2,
+                   help="skip scans spanning a ground-truth gap longer than this [s]; "
+                        "raise it for low-rate ground truth (e.g. 0.3 for 5 Hz)")
     args = p.parse_args(argv)
 
     if args.extrinsic:
@@ -54,8 +57,9 @@ def main(argv: list[str] | None = None) -> int:
         T_gt_lidar = invert(fusionportable_extrinsic(args.calib, args.gt_frame))
 
     config = ExtractionConfig(topic=args.topic, rate_hz=args.rate, time_field=args.time_field,
-                              time_scale=args.time_scale, deskew=not args.no_deskew)
-    stats = extract_frames(args.bag, Trajectory.from_tum(args.gt), T_gt_lidar, args.out, config)
+                              time_scale=args.time_scale, deskew=not args.no_deskew,
+                              max_gt_gap=args.max_gt_gap)
+    stats = extract_frames(args.bag if len(args.bag) > 1 else args.bag[0], Trajectory.from_tum(args.gt), T_gt_lidar, args.out, config)
     print(f"scans seen {stats.scans_seen}, frames written {stats.frames_written}, "
           f"skipped (no ground truth) {stats.skipped_no_ground_truth}, "
           f"skipped (empty) {stats.skipped_empty}")

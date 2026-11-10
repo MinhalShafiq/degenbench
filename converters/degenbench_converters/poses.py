@@ -21,6 +21,18 @@ def quat_to_rot(q: np.ndarray) -> np.ndarray:
     ])
 
 
+def quat_to_rot_batch(q: np.ndarray) -> np.ndarray:
+    """(N, 4) quaternions (qx qy qz qw) to (N, 3, 3) rotation matrices."""
+    q = np.asarray(q, dtype=float)
+    q = q / np.linalg.norm(q, axis=1, keepdims=True)
+    x, y, z, w = q.T
+    return np.stack([
+        np.stack([1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)], -1),
+        np.stack([2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)], -1),
+        np.stack([2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)], -1),
+    ], 1)
+
+
 def rot_to_quat(r: np.ndarray) -> np.ndarray:
     """Rotation matrix to (qx, qy, qz, qw) with qw >= 0 (Shepperd's method)."""
     r = np.asarray(r, dtype=float)
@@ -126,6 +138,6 @@ class Trajectory:
             u = (t[sel] - t0) / (t1 - t0)
             q = slerp(self.quaternions[i], self.quaternions[i + 1], u)
             p = self.positions[i] + u[:, None] * (self.positions[i + 1] - self.positions[i])
-            out[sel, :3, :3] = np.stack([quat_to_rot(qi) for qi in q])
+            out[sel, :3, :3] = quat_to_rot_batch(q)
             out[sel, :3, 3] = p
         return out
