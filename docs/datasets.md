@@ -50,8 +50,29 @@ Known issues:
   original FusionPortable maps where a clean map is needed.
 - Vehicle ground truth was post-processed (2024-05-08) to drop high-uncertainty
   poses, so vehicle trajectories have gaps.
-- **To verify on download:** the frame the ground-truth trajectory is expressed
-  in. The converter takes it as a parameter.
+
+### Ground truth, as downloaded (2026-11-10)
+
+Checked from the trajectory files in `groundtruth/traj/` on the Drive folder:
+
+| Sequence | Rate | Orientation | Max gap | Extent (x × y) |
+| --- | --- | --- | --- | --- |
+| `handheld_underground00` | 20 Hz | **None** (all identity) | 2.7 s | 400 m × 20 m |
+| `legged_underground00` | 20 Hz | **None** (all identity) | 2.0 s | 160 m × 8 m |
+| `ugv_parking00`–`03` | 30 Hz | Full 6-DoF | 0.07 s | up to 110 m × 70 m |
+| `ugv_campus00` | 30 Hz | Full 6-DoF | 0.07 s | 250 m × 560 m |
+
+- **The underground sequences are position-only** (consistent with total-station
+  prism tracking). Their scene is a 400 m long, narrow tunnel: the most useful
+  degenerate geometry in the dataset. Labels there need orientation from
+  elsewhere: registering each scan to the survey map with the position fixed
+  by ground truth. That is a lower-tier label and must be marked as such.
+- **UGV sequences have full 6-DoF poses with no gaps**, all starting at the
+  same point with different headings, so they share one world frame. Whether
+  that frame is the campus map frame is checked against the map itself.
+- Timestamps carry sub-millisecond decimals. Tools that parse numbers using
+  the system locale (e.g. `awk` under a decimal-comma locale) truncate them;
+  use `LC_ALL=C`.
 
 ## SubT-MRS
 
