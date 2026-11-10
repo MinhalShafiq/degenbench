@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include "degenbench/labeler/io.hpp"
+#include "degenbench/labeler/localizability.hpp"
 #include "degenbench/labeler/map.hpp"
 #include "degenbench/labeler/scenes.hpp"
 
@@ -150,6 +151,24 @@ TEST(Map, CoverageDetectsWrongPose) {
   EXPECT_LT(map_coverage(s.map, s.scan, off, 0.3), 0.2);
 }
 
+// A ground-truth pose that is off in constrained directions is pulled back to the
+// map; the degenerate direction (corridor axis) is left where it was.
+TEST(RefinePose, FixesConstrainedDirectionsOnly) {
+  const AnalyticScene s = make_corridor_scene();
+  Eigen::Isometry3d off = s.T_map_sensor;
+  off.translation() += Eigen::Vector3d(0.4, 0.15, -0.1);  // along-corridor, lateral, vertical
+  off.linear() = Eigen::AngleAxisd(0.03, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+  const RefinedPose r = refine_pose(s.map, s.scan, off, LabelConfig{});
+  const Vector6d e = pose_error(s.T_map_sensor, r.T_map_sensor);
+  EXPECT_TRUE(r.converged);
+  EXPECT_NEAR(e[1], 0.0, 0.01) << "lateral fixed";
+  EXPECT_NEAR(e[2], 0.0, 0.01) << "vertical fixed";
+  EXPECT_LT(e.tail<3>().norm(), 0.003) << "rotation fixed";
+  // Along the corridor nothing constrains the pose: it may drift a little while the
+  // rotation is corrected, but it is not pulled back to the true value.
+  EXPECT_GT(e[0], 0.25) << "along-corridor offset is unobservable and is not 'fixed'";
+}
+
 // Run the CLI on a synthetic corridor "sequence" written in the converter's format.
 TEST(LabelSequenceTool, CorridorEndToEnd) {
   const auto dir = temp_dir("tool");
@@ -183,15 +202,18 @@ TEST(LabelSequenceTool, CorridorEndToEnd) {
   int rows = 0;
   while (std::getline(labels, row)) {
     ++rows;
-    // index,stamp,map_points,coverage,icp_k,gicp_k,angle,agree,icp_axes,gicp_axes,...
+    // index,stamp,map_points,coverage,refine_conv,refine_t,refine_r,icp_k,gicp_k,angle,agree,
+    // icp_axes,gicp_axes,...
     std::vector<std::string> v;
     std::stringstream ss(row);
     for (std::string c; std::getline(ss, c, ',');) v.push_back(c);
     EXPECT_GT(std::stod(v[3]), 0.95) << "coverage";
-    EXPECT_EQ(v[4], "1");
-    EXPECT_EQ(v[5], "1");
-    EXPECT_EQ(v[7], "1") << "solvers agree";
-    EXPECT_EQ(v[8], "100000") << "only tx free";
+    EXPECT_EQ(v[4], "1") << "refinement converged";
+    EXPECT_LT(std::stod(v[5]), 0.05) << "exact pose needs almost no refinement";
+    EXPECT_EQ(v[7], "1");
+    EXPECT_EQ(v[8], "1");
+    EXPECT_EQ(v[10], "1") << "solvers agree";
+    EXPECT_EQ(v[11], "100000") << "only tx free";
   }
   EXPECT_EQ(rows, 2);
   EXPECT_TRUE(fs::exists(dir / "out" / "labels_subspaces.csv"));

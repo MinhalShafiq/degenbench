@@ -3,6 +3,12 @@
 //   label_sequence --frames <dir with frames.csv> --map <map.pcd> --out <labels.csv>
 //                  [--crop-radius 60] [--map-voxel 0.2] [--coverage-distance 0.5]
 //                  [--every 1] [--max-frames 0] [--threads 4] [--samples 200]
+//                  [--T-map-world T.txt] [--no-refine 1]
+//
+// --T-map-world: 4x4 matrix (row-major text) taking ground-truth world
+// coordinates into the map frame, when the two differ.
+// Each frame's reference pose is the ground-truth pose refined against the map
+// (see refine_pose); the refinement is reported per frame.
 //
 // Writes <out> with one row per frame, and <out stem>_subspaces.csv with the
 // eigenvectors of both solvers (column-major, ascending eigenvalue order; the
@@ -35,13 +41,16 @@ struct Args {
   int max_frames = 0;
   int threads = 4;
   int samples = 200;
+  std::string T_map_world;
+  int no_refine = 0;
 };
 
 [[noreturn]] void usage(const char* msg) {
   std::cerr << "error: " << msg << "\n"
             << "usage: label_sequence --frames DIR --map MAP.pcd --out LABELS.csv\n"
             << "  [--crop-radius M] [--map-voxel M] [--coverage-distance M]\n"
-            << "  [--every N] [--max-frames N] [--threads N] [--samples N]\n";
+            << "  [--every N] [--max-frames N] [--threads N] [--samples N]\n"
+            << "  [--T-map-world T.txt] [--no-refine 1]\n";
   std::exit(2);
 }
 
@@ -65,6 +74,7 @@ Args parse(int argc, char** argv) {
   take("crop-radius", a.crop_radius); take("map-voxel", a.map_voxel);
   take("coverage-distance", a.coverage_distance); take("every", a.every);
   take("max-frames", a.max_frames); take("threads", a.threads); take("samples", a.samples);
+  take("T-map-world", a.T_map_world); take("no-refine", a.no_refine);
   if (!kv.empty()) usage(("unknown option --" + kv.begin()->first).c_str());
   if (a.frames.empty() || a.map.empty() || a.out.empty()) usage("--frames, --map and --out are required");
   if (a.every < 1) usage("--every must be >= 1");
@@ -90,6 +100,16 @@ int main(int argc, char** argv) {
   std::cerr << "map: " << raw_map.size() << " points, " << map.size() << " after "
             << args.map_voxel << " m voxels\n";
 
+  Eigen::Isometry3d T_map_world = Eigen::Isometry3d::Identity();
+  if (!args.T_map_world.empty()) {
+    std::ifstream tf(args.T_map_world);
+    tf.imbue(std::locale::classic());
+    Eigen::Matrix4d M;
+    for (int i = 0; i < 16; ++i)
+      if (!(tf >> M(i / 4, i % 4))) usage("--T-map-world: expected 16 numbers");
+    T_map_world.matrix() = M;
+  }
+
   LabelConfig config;
   config.num_threads = args.threads;
   config.num_samples = args.samples;
@@ -103,7 +123,7 @@ int main(int argc, char** argv) {
   std::ofstream sub(sub_path);
   sub.imbue(std::locale::classic());
 
-  out << "index,stamp,map_points,coverage,icp_k,gicp_k,subspace_angle_deg,solvers_agree,"
+  out << "index,stamp,map_points,coverage,refine_converged,refine_trans_m,refine_rot_deg,icp_k,gicp_k,subspace_angle_deg,solvers_agree,"
          "icp_axes,gicp_axes";
   for (const char* s : {"icp", "gicp"})
     for (int i = 0; i < 6; ++i) out << "," << s << "_eig" << i;
@@ -122,19 +142,26 @@ int main(int argc, char** argv) {
     char name[32];
     std::snprintf(name, sizeof(name), "%06d.bin", fr.index);
     const auto scan = read_bin_points((fs::path(args.frames) / "frames" / name).string());
-    const auto local_map = crop_radius(map, fr.T_world_lidar.translation(), args.crop_radius);
+    const Eigen::Isometry3d T_gt = T_map_world * fr.T_world_lidar;
+    const auto local_map = crop_radius(map, T_gt.translation(), args.crop_radius);
     if (local_map.size() < 100) {
       std::cerr << "frame " << fr.index << ": only " << local_map.size()
                 << " map points nearby, skipped\n";
       continue;
     }
+    RefinedPose ref;
+    ref.T_map_sensor = T_gt;
+    ref.converged = true;
+    if (!args.no_refine) ref = refine_pose(local_map, scan, T_gt, config);
     const double coverage = map_coverage(local_map, voxel_downsample(scan, config.downsampling_resolution),
-                                         fr.T_world_lidar, args.coverage_distance);
-    const DualSolverLabel d = label_frame_dual(local_map, scan, fr.T_world_lidar, config);
+                                         ref.T_map_sensor, args.coverage_distance);
+    const DualSolverLabel d = label_frame_dual(local_map, scan, ref.T_map_sensor, config);
 
     out << fr.index << "," << std::fixed;
     out.precision(6);
     out << fr.stamp << "," << local_map.size() << "," << coverage << ","
+        << (ref.converged ? 1 : 0) << "," << ref.correction.head<3>().norm() << ","
+        << ref.correction.tail<3>().norm() * 180.0 / M_PI << ","
         << d.point_to_plane_icp.num_degenerate << "," << d.gicp.num_degenerate << ","
         << d.subspace_angle_deg << "," << (d.solvers_agree ? 1 : 0) << ","
         << axes_string(d.point_to_plane_icp.axis_degenerate) << ","
@@ -154,7 +181,8 @@ int main(int argc, char** argv) {
     out.flush();
     sub.flush();
     ++done;
-    std::cerr << "frame " << fr.index << ": coverage " << coverage << ", k icp/gicp "
+    std::cerr << "frame " << fr.index << ": refine " << ref.correction.head<3>().norm() << " m, coverage "
+              << coverage << ", k icp/gicp "
               << d.point_to_plane_icp.num_degenerate << "/" << d.gicp.num_degenerate
               << ", angle " << d.subspace_angle_deg << " deg\n";
   }

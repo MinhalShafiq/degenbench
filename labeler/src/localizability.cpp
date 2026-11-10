@@ -113,6 +113,32 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
   return label;
 }
 
+RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
+                        const std::vector<Eigen::Vector3d>& scan,
+                        const Eigen::Isometry3d& T_init, const LabelConfig& config) {
+  auto [target, tree] = small_gicp::preprocess_points(map, config.downsampling_resolution,
+                                                      config.num_neighbors, 1);
+  auto [source, stree] = small_gicp::preprocess_points(scan, config.downsampling_resolution,
+                                                       config.num_neighbors, 1);
+  (void)stree;
+  small_gicp::RegistrationSetting s;
+  s.type = small_gicp::RegistrationSetting::GICP;
+  s.max_iterations = config.max_iterations;
+  s.num_threads = std::max(1, config.num_threads);
+  RefinedPose out;
+  Eigen::Isometry3d T = T_init;
+  // Coarse to fine, ending at the probe's own correspondence distance.
+  for (double d : {2.0 * config.max_correspondence_distance, config.max_correspondence_distance}) {
+    s.max_correspondence_distance = d;
+    const auto r = small_gicp::align(*target, *source, *tree, T, s);
+    T = r.T_target_source;
+    out.converged = r.converged;
+  }
+  out.T_map_sensor = T;
+  out.correction = pose_error(T_init, T);
+  return out;
+}
+
 namespace {
 
 Eigen::MatrixXd orthonormal_basis(const Eigen::MatrixXd& a) {

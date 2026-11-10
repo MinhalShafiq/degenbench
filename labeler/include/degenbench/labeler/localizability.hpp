@@ -93,6 +93,23 @@ DualSolverLabel label_frame_dual(const std::vector<Eigen::Vector3d>& map,
                                  const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
                                  double max_agreement_angle_deg = 15.0);
 
+/// Reference pose for labelling: the ground-truth pose refined against the map.
+///
+/// Ground truth from INS or SLAM is accurate to a few cm or worse, and an error
+/// in a well-constrained direction would otherwise appear as a spurious bias in
+/// the probe. GICP from the ground-truth pose pulls the constrained directions to
+/// the map and leaves degenerate directions where the ground truth put them. The
+/// size of the refinement is a per-frame ground-truth quality measure.
+struct RefinedPose {
+  Eigen::Isometry3d T_map_sensor = Eigen::Isometry3d::Identity();
+  Vector6d correction = Vector6d::Zero();  ///< pose_error(T_init, T_refined)
+  bool converged = false;
+};
+
+RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
+                        const std::vector<Eigen::Vector3d>& scan,
+                        const Eigen::Isometry3d& T_init, const LabelConfig& config);
+
 /// Pose error T_gt^-1 * T_est as [t; rotation vector].
 Vector6d pose_error(const Eigen::Isometry3d& T_gt, const Eigen::Isometry3d& T_est);
 
