@@ -145,6 +145,20 @@ def test_missing_topic_is_an_error(synthetic_bag, tmp_path):
                        ExtractionConfig(topic="/nope"))
 
 
+def test_cli_with_extrinsic_yaml(synthetic_bag, tmp_path):
+    import yaml
+    bag, world, truth = synthetic_bag
+    ext = tmp_path / "handeye.yaml"
+    ext.write_text(yaml.safe_dump({"T_gt_lidar": T_GT_LIDAR.tolist()}))
+    gt = tmp_path / "gt.txt"
+    gt_trajectory().to_tum(gt)
+    out = tmp_path / "cli_ext"
+    assert main(["--bag", str(bag), "--gt", str(gt), "--out", str(out), "--extrinsic", str(ext)]) == 0
+    rows, clouds = read_frames(out)
+    recovered = apply(truth[round(rows[0][1], 6)], clouds[0].astype(float))
+    assert np.max(np.linalg.norm(recovered - world, axis=1)) < 2e-3
+
+
 def test_cli_with_fusionportable_calibration(synthetic_bag, tmp_path):
     bag, world, truth = synthetic_bag
     # Write a calibration file in FusionPortable's layout: T_sensor_body_imu.

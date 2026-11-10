@@ -16,6 +16,7 @@ import argparse
 import sys
 
 import numpy as np
+import yaml
 
 from .calibration import fusionportable_extrinsic
 from .frames import ExtractionConfig, extract_frames
@@ -31,13 +32,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--calib", help="FusionPortable LiDAR calibration YAML (ouster00.yaml)")
     p.add_argument("--gt-frame", default="lidar",
                    help="frame the trajectory is expressed in; 'lidar' means no extrinsic")
+    p.add_argument("--extrinsic", help="YAML with a 4x4 T_gt_lidar (e.g. from handeye); "
+                                       "overrides --calib/--gt-frame")
     p.add_argument("--rate", type=float, default=1.0, help="frames per second")
     p.add_argument("--time-field", default="t")
     p.add_argument("--time-scale", type=float, default=1e-9)
     p.add_argument("--no-deskew", action="store_true")
     args = p.parse_args(argv)
 
-    if args.gt_frame == "lidar":
+    if args.extrinsic:
+        with open(args.extrinsic, encoding="utf-8") as f:
+            T_gt_lidar = np.array(yaml.safe_load(f)["T_gt_lidar"], dtype=float)
+        if T_gt_lidar.shape != (4, 4):
+            p.error("--extrinsic: T_gt_lidar must be 4x4")
+    elif args.gt_frame == "lidar":
         T_gt_lidar = np.eye(4)
     else:
         if not args.calib:

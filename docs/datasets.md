@@ -34,7 +34,7 @@ Label candidates are the sequences inside a mapped area:
 | --- | --- | --- | --- |
 | `handheld_underground00` | Handheld | Underground Parking | Structureless |
 | `legged_underground00` | Legged | Underground Parking | Structureless |
-| `ugv_parking00`–`03` | UGV | Underground Parking (to confirm per sequence) | Structureless; wheel encoders |
+| `ugv_parking00`–`03` | UGV | None found (`ugv_parking02` checked, see below) | Structureless; wheel encoders |
 | `ugv_campus00`, `01` | UGV | UGV Campus | Large-scale; wheel encoders |
 
 | Sensor | Topic | Type |
@@ -102,6 +102,15 @@ Checked from the trajectory files in `groundtruth/traj/` on the Drive folder:
   initialize: per-frame reference poses are refined against the survey map,
   and the size of each refinement is published as a ground-truth quality
   measure.
+- **`ugv_parking02` is not covered by the campus map** (checked 2026-11-10).
+  The method: accumulate the 77 deskewed 1 Hz frames along the ground
+  truth, reduce both clouds to 0.5 m occupancy images of vertical structure,
+  search all 360 yaws with FFT cross-correlation, then refine the top
+  candidates with coarse-to-fine GICP. Two candidates 133° apart tie
+  (36% of points within 0.3 m each). Scoring only above-ground points
+  gives 21.8% at the best pose and 18–20% at poses shifted 5–20 m, i.e. no
+  better than chance. The parking lot is presumably outside the surveyed
+  area. Whether `ugv_campus00` lies inside the map is still open.
 - Maps are shipped as `binary_compressed` (LZF) PCD at several resolutions;
   the file suffix is the voxel size (`_02` = 0.2 m, `_008` = 0.08 m).
 - Timestamps carry sub-millisecond decimals. Tools that parse numbers using
