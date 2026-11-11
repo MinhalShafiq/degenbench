@@ -50,6 +50,9 @@ struct LabelConfig {
 struct FrameLabel {
   std::vector<Vector6d> offsets;       ///< Initial offsets applied (physical units).
   std::vector<Vector6d> final_errors;  ///< Final registration errors (physical units).
+  std::vector<int> iterations;         ///< Solver iterations per sample.
+  std::vector<char> converged;         ///< Solver convergence flag per sample.
+  std::vector<int> inliers;            ///< Correspondences used at the final iterate.
 
   Vector6d rms_error;  ///< Per-axis RMS final error (physical units).
 
@@ -109,6 +112,21 @@ struct RefinedPose {
 RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
                         const std::vector<Eigen::Vector3d>& scan,
                         const Eigen::Isometry3d& T_init, const LabelConfig& config);
+
+/// Gauss-Newton information matrix of one registration evaluated at a pose,
+/// reordered to [t; r] and expressed in threshold-normalized coordinates
+/// (t / trans_threshold, r / rot_threshold), so its spectrum is directly
+/// comparable with the probe's normalized eigenvalues.
+struct Information {
+  Matrix6d H_normalized = Matrix6d::Zero();
+  Vector6d eigenvalues = Vector6d::Zero();  ///< Ascending.
+  Matrix6d eigenvectors = Matrix6d::Zero();
+  int inliers = 0;
+};
+
+Information information_at(const std::vector<Eigen::Vector3d>& map,
+                           const std::vector<Eigen::Vector3d>& scan,
+                           const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config);
 
 /// Pose error T_gt^-1 * T_est as [t; rotation vector].
 Vector6d pose_error(const Eigen::Isometry3d& T_gt, const Eigen::Isometry3d& T_est);

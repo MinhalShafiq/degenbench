@@ -65,5 +65,36 @@ TEST(DualSolver, AgreesOnEveryAnalyticScene) {
   }
 }
 
+// The analytic information matrix must show the same free directions as the
+// Monte Carlo probe on scenes with known answers, for both solvers.
+class InformationTest : public ::testing::TestWithParam<Solver> {};
+
+TEST_P(InformationTest, WeakDirectionsMatchAnalyticScenes) {
+  LabelConfig config;
+  config.solver = GetParam();
+  for (const auto& scene : make_all_analytic_scenes()) {
+    const Information info = information_at(scene.map, scene.scan, scene.T_map_sensor, config);
+    const int k = scene.expected_num_degenerate;
+    SCOPED_TRACE(scene.name);
+    ASSERT_GT(info.inliers, 100);
+    if (k == 0) {
+      EXPECT_GT(info.eigenvalues[0] / info.eigenvalues[5], 1e-3) << "fully constrained";
+      continue;
+    }
+    // A gap between the k free and 6 - k constrained directions. Not exact zero:
+    // normals and covariances come from noisy, sampled points. Measured ratios
+    // range from 0.004 (plane, GICP) to 0.24 (cylinder roll, ICP), so the gap is
+    // a diagnostic, and the subspace check below is the strict one.
+    EXPECT_LT(info.eigenvalues[k - 1], 0.3 * info.eigenvalues[k]);
+    const Eigen::MatrixXd weak = info.eigenvectors.leftCols(k);
+    for (int i = 0; i < 6; ++i)
+      if (scene.expected_free_axes[i]) EXPECT_GT(weak.row(i).norm(), 0.95) << "axis " << i;
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(BothSolvers, InformationTest,
+                         ::testing::Values(Solver::PointToPlaneICP, Solver::GICP),
+                         [](const auto& info) { return std::string(to_string(info.param)); });
+
 }  // namespace
 }  // namespace degenbench

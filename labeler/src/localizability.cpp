@@ -71,6 +71,9 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
   FrameLabel label;
   label.offsets.resize(config.num_samples);
   label.final_errors.resize(config.num_samples);
+  label.iterations.resize(config.num_samples);
+  label.converged.resize(config.num_samples);
+  label.inliers.resize(config.num_samples);
 
   // Draw all offsets up front so results do not depend on thread scheduling.
   std::mt19937_64 rng(config.seed);
@@ -83,6 +86,9 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
     const Eigen::Isometry3d init = T_map_sensor * offset_to_pose(label.offsets[i]);
     const auto result = small_gicp::align(*target, *source, *target_tree, init, setting);
     label.final_errors[i] = pose_error(T_map_sensor, result.T_target_source);
+    label.iterations[i] = static_cast<int>(result.iterations);
+    label.converged[i] = result.converged ? 1 : 0;
+    label.inliers[i] = static_cast<int>(result.num_inliers);
   }
 
   Vector6d scale;
@@ -111,6 +117,38 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
 
   for (int i = 0; i < 6; ++i) label.axis_degenerate[i] = moment(i, i) > 1.0;
   return label;
+}
+
+Information information_at(const std::vector<Eigen::Vector3d>& map,
+                           const std::vector<Eigen::Vector3d>& scan,
+                           const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config) {
+  auto [target, tree] = small_gicp::preprocess_points(map, config.downsampling_resolution,
+                                                      config.num_neighbors, 1);
+  auto [source, stree] = small_gicp::preprocess_points(scan, config.downsampling_resolution,
+                                                       config.num_neighbors, 1);
+  (void)stree;
+  small_gicp::RegistrationSetting s;
+  s.type = config.solver == Solver::GICP ? small_gicp::RegistrationSetting::GICP
+                                         : small_gicp::RegistrationSetting::PLANE_ICP;
+  s.max_correspondence_distance = config.max_correspondence_distance;
+  s.max_iterations = 1;  // linearize at the given pose; H is evaluated before the step
+  s.num_threads = std::max(1, config.num_threads);
+  const auto r = small_gicp::align(*target, *source, *tree, T_map_sensor, s);
+  // small_gicp orders the tangent space [r; t]; reorder to [t; r] and normalize.
+  Eigen::Matrix<double, 6, 6> P = Eigen::Matrix<double, 6, 6>::Zero();
+  P.block<3, 3>(0, 3).setIdentity();
+  P.block<3, 3>(3, 0).setIdentity();
+  Vector6d scale;
+  scale << Eigen::Vector3d::Constant(config.trans_threshold),
+      Eigen::Vector3d::Constant(config.rot_threshold);
+  Information info;
+  const Matrix6d H = P.transpose() * r.H * P;
+  info.H_normalized = scale.asDiagonal() * H * scale.asDiagonal();
+  const Eigen::SelfAdjointEigenSolver<Matrix6d> eig(info.H_normalized);
+  info.eigenvalues = eig.eigenvalues();
+  info.eigenvectors = eig.eigenvectors();
+  info.inliers = static_cast<int>(r.num_inliers);
+  return info;
 }
 
 RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
