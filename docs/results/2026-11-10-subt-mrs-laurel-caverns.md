@@ -74,9 +74,8 @@ tuned on.
 
 ## Open questions
 
-- Why the solvers diverge here: VLP-16 scans are sparse (16 rings), and GICP's
-  per-point covariances from 10 neighbours may be poor in such scans. This
-  needs a controlled test on a held-out sequence, not tuning on this one.
+- Why the solvers diverge: answered below (convergence basin, not covariance
+  quality or iteration limits).
 - The visual spot check of 50 frames (pre-registered) is still to do.
 
 ## Diagnosis of the solver disagreement (2026-11-11)
