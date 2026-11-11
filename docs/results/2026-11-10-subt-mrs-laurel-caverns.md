@@ -117,3 +117,20 @@ is that separation. This is a flaw in the label definition, not an
 implementation bug. Changing the definition is a methodological decision, to
 be pre-registered as a new thresholds version and evaluated on a sequence it
 was not developed on.
+
+## Development result under thresholds v2 (2026-11-11)
+
+Same frames, map and reference-pose procedure, offsets ±0.2 m / ±4°. This
+sequence informed the v2 decision, so this is a development result, not
+evidence; the held-out evaluation is
+`docs/results/2026-11-11-subt-mrs-corridor01-thresholds-v2.md`.
+
+| | v1 (±0.5 m, ±5°) | v2 (±0.2 m, ±4°) |
+| --- | --- | --- |
+| Solver agreement | 72.1% | 86.4% (pass ≥ 90%: FAIL) |
+| ICP frames with free directions | 185 | 81 |
+| GICP frames with free directions | 281 | 138 |
+| Runtime, 946 frames | 25.6 min | 9.7 min |
+
+Remaining disagreements: 83 frames ICP 0 / GICP 1, 2 ICP 0 / GICP 2, 28 ICP 1 /
+GICP 0, 15 same dimension but more than 15° apart, 1 ICP 2 / GICP 1.
