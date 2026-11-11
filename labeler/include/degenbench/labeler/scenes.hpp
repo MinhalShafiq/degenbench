@@ -25,6 +25,11 @@ struct AnalyticScene {
 
 struct SceneConfig {
   double map_spacing = 0.2;      ///< Approximate map point spacing [m].
+  /// Spacing around curved surfaces [m]. Must be much finer than map_spacing: a
+  /// tube sampled at 0.2 m is a 63-sided prism whose facets (every 5.7 deg)
+  /// constrain rotation about its axis and make a free direction look partly
+  /// constrained.
+  double curved_spacing = 0.02;
   int num_scan_points = 6000;
   double scan_radius = 8.0;      ///< Scan points are kept within this range of the sensor [m].
   double scan_noise_std = 0.01;  ///< Isotropic Gaussian noise on scan points [m].

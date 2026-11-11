@@ -121,7 +121,7 @@ AnalyticScene make_cylinder_scene(const SceneConfig& config) {
   scene.expected_num_degenerate = 2;
   scene.expected_free_axes = {true, false, false, true, false, false};
 
-  const int n_around = static_cast<int>(std::ceil(2 * M_PI * radius / config.map_spacing));
+  const int n_around = static_cast<int>(std::ceil(2 * M_PI * radius / config.curved_spacing));
   const int n_along = static_cast<int>(std::ceil(2 * kMapHalfLength / config.map_spacing));
   for (int i = 0; i <= n_along; ++i) {
     const double x = -kMapHalfLength + 2 * kMapHalfLength * i / n_along;
