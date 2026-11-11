@@ -113,6 +113,10 @@ int main(int argc, char** argv) {
   LabelConfig config;
   config.num_threads = args.threads;
   config.num_samples = args.samples;
+  // Prepare the whole map once: normals, covariances and k-d tree are shared by
+  // refinement, coverage and both probes for every frame.
+  const PreparedCloud prepared_map = prepare(map, config);
+  std::cerr << "map prepared: " << prepared_map.size() << " points\n";
 
   const fs::path out_path(args.out);
   if (out_path.has_parent_path()) fs::create_directories(out_path.parent_path());
@@ -149,13 +153,14 @@ int main(int argc, char** argv) {
                 << " map points nearby, skipped\n";
       continue;
     }
+    const PreparedCloud prepared_scan = prepare(scan, config);
     RefinedPose ref;
     ref.T_map_sensor = T_gt;
     ref.converged = true;
-    if (!args.no_refine) ref = refine_pose(local_map, scan, T_gt, config);
-    const double coverage = map_coverage(local_map, voxel_downsample(scan, config.downsampling_resolution),
-                                         ref.T_map_sensor, args.coverage_distance);
-    const DualSolverLabel d = label_frame_dual(local_map, scan, ref.T_map_sensor, config);
+    if (!args.no_refine) ref = refine_pose(prepared_map, prepared_scan, T_gt, config);
+    const double coverage =
+        prepared_coverage(prepared_map, prepared_scan, ref.T_map_sensor, args.coverage_distance);
+    const DualSolverLabel d = label_frame_dual(prepared_map, prepared_scan, ref.T_map_sensor, config);
 
     out << fr.index << "," << std::fixed;
     out.precision(6);

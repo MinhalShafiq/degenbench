@@ -22,8 +22,8 @@ target_include_directories(degenbench_labeler PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(degenbench_labeler
-  PUBLIC Eigen3::Eigen
-  PRIVATE small_gicp::small_gicp OpenMP::OpenMP_CXX
+  PUBLIC Eigen3::Eigen small_gicp::small_gicp
+  PRIVATE OpenMP::OpenMP_CXX
 )
 target_compile_options(degenbench_labeler PRIVATE -Wall -Wextra -Wpedantic)
 

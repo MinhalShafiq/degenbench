@@ -4,8 +4,13 @@
 #include <cstdint>
 #include <vector>
 
+#include <memory>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include <small_gicp/ann/kdtree.hpp>
+#include <small_gicp/points/point_cloud.hpp>
 
 namespace degenbench {
 
@@ -68,6 +73,22 @@ struct FrameLabel {
   std::array<bool, 6> axis_degenerate{};
 };
 
+/// A cloud downsampled and preprocessed once (normals, covariances, k-d tree), so
+/// the same map or scan can be shared by refinement, coverage and both probes.
+/// Preparing the whole map once avoids per-frame cropping: correspondences are
+/// only searched near the scan, and normals at a crop edge get no worse.
+struct PreparedCloud {
+  std::shared_ptr<small_gicp::PointCloud> cloud;
+  std::shared_ptr<small_gicp::KdTree<small_gicp::PointCloud>> tree;
+  size_t size() const;
+};
+
+/// Deterministic (single-threaded) preprocessing at config.downsampling_resolution.
+PreparedCloud prepare(const std::vector<Eigen::Vector3d>& points, const LabelConfig& config);
+
+FrameLabel label_frame(const PreparedCloud& map, const PreparedCloud& scan,
+                       const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config);
+
 /// Probe how well `scan` (sensor frame) can be registered to `map` (map frame)
 /// around the ground-truth pose `T_map_sensor`.
 FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
@@ -87,6 +108,10 @@ struct DualSolverLabel {
   double subspace_angle_deg = 0.0;  ///< Between the two degenerate subspaces.
   bool solvers_agree = false;
 };
+
+DualSolverLabel label_frame_dual(const PreparedCloud& map, const PreparedCloud& scan,
+                                 const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
+                                 double max_agreement_angle_deg = 15.0);
 
 /// Run the probe with point-to-plane ICP and GICP on the same offsets. They agree
 /// when the subspace angle is at most `max_agreement_angle_deg` (pre-registered:
@@ -109,6 +134,14 @@ struct RefinedPose {
   bool converged = false;
 };
 
+RefinedPose refine_pose(const PreparedCloud& map, const PreparedCloud& scan,
+                        const Eigen::Isometry3d& T_init, const LabelConfig& config);
+
+/// Fraction of prepared scan points within `max_distance` of the prepared map
+/// at `T_map_sensor` (see map_coverage in map.hpp).
+double prepared_coverage(const PreparedCloud& map, const PreparedCloud& scan,
+                         const Eigen::Isometry3d& T_map_sensor, double max_distance);
+
 RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
                         const std::vector<Eigen::Vector3d>& scan,
                         const Eigen::Isometry3d& T_init, const LabelConfig& config);
@@ -123,6 +156,9 @@ struct Information {
   Matrix6d eigenvectors = Matrix6d::Zero();
   int inliers = 0;
 };
+
+Information information_at(const PreparedCloud& map, const PreparedCloud& scan,
+                           const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config);
 
 Information information_at(const std::vector<Eigen::Vector3d>& map,
                            const std::vector<Eigen::Vector3d>& scan,

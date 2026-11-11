@@ -37,10 +37,26 @@ Eigen::Isometry3d offset_to_pose(const Vector6d& offset) {
   return T;
 }
 
+size_t PreparedCloud::size() const { return cloud ? cloud->size() : 0; }
+
+PreparedCloud prepare(const std::vector<Eigen::Vector3d>& points, const LabelConfig& config) {
+  if (points.empty()) throw std::invalid_argument("prepare: empty point cloud");
+  // Single-threaded: small_gicp's parallel downsampling is not deterministic, and
+  // labels must be bit-reproducible from the released generator.
+  auto [cloud, tree] = small_gicp::preprocess_points(points, config.downsampling_resolution,
+                                                     config.num_neighbors, 1);
+  return PreparedCloud{cloud, tree};
+}
+
 FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
                        const std::vector<Eigen::Vector3d>& scan,
                        const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config) {
   if (map.empty() || scan.empty()) throw std::invalid_argument("label_frame: empty point cloud");
+  return label_frame(prepare(map, config), prepare(scan, config), T_map_sensor, config);
+}
+
+FrameLabel label_frame(const PreparedCloud& map, const PreparedCloud& scan,
+                       const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config) {
   if (config.num_samples < 2) throw std::invalid_argument("label_frame: need >= 2 samples");
   // Along a truly free direction the solver leaves the offset unchanged, so the
   // normalized eigenvalue equals the offset variance over threshold^2. A uniform
@@ -52,14 +68,9 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
   }
 
   using small_gicp::RegistrationSetting;
-  // Single-threaded: small_gicp's parallel downsampling is not deterministic, and
-  // labels must be bit-reproducible from the released generator.
-  constexpr int prep_threads = 1;
-  auto [target, target_tree] = small_gicp::preprocess_points(
-      map, config.downsampling_resolution, config.num_neighbors, prep_threads);
-  auto [source, source_tree] = small_gicp::preprocess_points(
-      scan, config.downsampling_resolution, config.num_neighbors, prep_threads);
-  (void)source_tree;
+  const auto& target = map.cloud;
+  const auto& target_tree = map.tree;
+  const auto& source = scan.cloud;
 
   RegistrationSetting setting;
   setting.type = config.solver == Solver::GICP ? RegistrationSetting::GICP
@@ -122,11 +133,14 @@ FrameLabel label_frame(const std::vector<Eigen::Vector3d>& map,
 Information information_at(const std::vector<Eigen::Vector3d>& map,
                            const std::vector<Eigen::Vector3d>& scan,
                            const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config) {
-  auto [target, tree] = small_gicp::preprocess_points(map, config.downsampling_resolution,
-                                                      config.num_neighbors, 1);
-  auto [source, stree] = small_gicp::preprocess_points(scan, config.downsampling_resolution,
-                                                       config.num_neighbors, 1);
-  (void)stree;
+  return information_at(prepare(map, config), prepare(scan, config), T_map_sensor, config);
+}
+
+Information information_at(const PreparedCloud& map, const PreparedCloud& scan,
+                           const Eigen::Isometry3d& T_map_sensor, const LabelConfig& config) {
+  const auto& target = map.cloud;
+  const auto& tree = map.tree;
+  const auto& source = scan.cloud;
   small_gicp::RegistrationSetting s;
   s.type = config.solver == Solver::GICP ? small_gicp::RegistrationSetting::GICP
                                          : small_gicp::RegistrationSetting::PLANE_ICP;
@@ -154,11 +168,28 @@ Information information_at(const std::vector<Eigen::Vector3d>& map,
 RefinedPose refine_pose(const std::vector<Eigen::Vector3d>& map,
                         const std::vector<Eigen::Vector3d>& scan,
                         const Eigen::Isometry3d& T_init, const LabelConfig& config) {
-  auto [target, tree] = small_gicp::preprocess_points(map, config.downsampling_resolution,
-                                                      config.num_neighbors, 1);
-  auto [source, stree] = small_gicp::preprocess_points(scan, config.downsampling_resolution,
-                                                       config.num_neighbors, 1);
-  (void)stree;
+  return refine_pose(prepare(map, config), prepare(scan, config), T_init, config);
+}
+
+double prepared_coverage(const PreparedCloud& map, const PreparedCloud& scan,
+                         const Eigen::Isometry3d& T_map_sensor, double max_distance) {
+  const double max_sq = max_distance * max_distance;
+  size_t covered = 0;
+  for (size_t i = 0; i < scan.size(); ++i) {
+    Eigen::Vector4d q;
+    q << T_map_sensor * scan.cloud->point(i).head<3>(), 1.0;
+    size_t idx;
+    double sq;
+    if (map.tree->nearest_neighbor_search(q, &idx, &sq) && sq <= max_sq) ++covered;
+  }
+  return scan.size() ? static_cast<double>(covered) / static_cast<double>(scan.size()) : 0.0;
+}
+
+RefinedPose refine_pose(const PreparedCloud& map, const PreparedCloud& scan,
+                        const Eigen::Isometry3d& T_init, const LabelConfig& config) {
+  const auto& target = map.cloud;
+  const auto& tree = map.tree;
+  const auto& source = scan.cloud;
   small_gicp::RegistrationSetting s;
   s.type = small_gicp::RegistrationSetting::GICP;
   s.max_iterations = config.max_iterations;
@@ -209,6 +240,13 @@ double max_principal_angle_deg(const Eigen::MatrixXd& a, const Eigen::MatrixXd& 
 
 DualSolverLabel label_frame_dual(const std::vector<Eigen::Vector3d>& map,
                                  const std::vector<Eigen::Vector3d>& scan,
+                                 const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
+                                 double max_agreement_angle_deg) {
+  return label_frame_dual(prepare(map, config), prepare(scan, config), T_map_sensor, config,
+                          max_agreement_angle_deg);
+}
+
+DualSolverLabel label_frame_dual(const PreparedCloud& map, const PreparedCloud& scan,
                                  const Eigen::Isometry3d& T_map_sensor, LabelConfig config,
                                  double max_agreement_angle_deg) {
   DualSolverLabel out;
