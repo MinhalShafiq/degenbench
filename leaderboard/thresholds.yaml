@@ -4,7 +4,24 @@
 # separate, dated commit with its reason in the message, and results must be
 # reported against the version that was in force when they were produced.
 
-version: 1
+version: 2
+
+# Version history
+# - 1 (2026-11-09): initial pre-registration.
+# - 2 (2026-11-11): label offsets reduced from +-0.5 m / +-5 deg to
+#   +-0.2 m / +-4 deg. Reason: on SubT-MRS Laurel Caverns (development
+#   sequence) the v1 probe mixed observability with each solver's convergence
+#   basin (docs/results/2026-11-10-subt-mrs-laurel-caverns.md), and solver
+#   agreement was 72.1% against the 90% pass condition. The new range is set by
+#   a rule fixed in advance, not fitted to that sequence: the smallest uniform
+#   offsets for which a truly free direction still scores a normalized
+#   eigenvalue of at least 4/3, i.e. >= 4 sigma above the threshold of 1 given
+#   the ~6% relative sampling noise of a 200-sample second moment. Free
+#   direction eigenvalue = (b / sqrt(3) / threshold)^2, so b >= 0.2 m and
+#   b >= 4 deg. The v1 range is kept as a separate, secondary output
+#   (robustness_probe). All pass conditions are unchanged. v2 is evaluated on
+#   SubT-MRS Corridor01, which no method decision has seen; Laurel Caverns
+#   results under v2 are reported as development results only.
 
 # ---------------------------------------------------------------------------
 # Label generation
@@ -13,8 +30,16 @@ labels:
   monte_carlo:
     num_samples: 200
     frame_rate_hz: 1.0
-    max_offset_trans_m: 0.5     # uniform per axis
-    max_offset_rot_deg: 5.0     # uniform per axis
+    max_offset_trans_m: 0.2     # uniform per axis
+    max_offset_rot_deg: 4.0     # uniform per axis
+  # Secondary output, not the label: whether each solver recovers from the
+  # wider v1 offsets. Reported per frame, never used for pass/fail.
+  robustness_probe:
+    max_offset_trans_m: 0.5
+    max_offset_rot_deg: 5.0
+  evaluation:
+    development_sequences: [subt_mrs/laurel_caverns_handheld3]
+    held_out_sequences: [subt_mrs/corridor01]
   # A direction is degenerate when the RMS final registration error along it,
   # in threshold-normalized coordinates (t / 0.10 m, r / 2 deg), exceeds 1.
   degeneracy_threshold:

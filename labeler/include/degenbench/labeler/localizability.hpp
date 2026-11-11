@@ -25,8 +25,8 @@ struct LabelConfig {
   Solver solver = Solver::PointToPlaneICP;
 
   int num_samples = 200;          ///< Random initial offsets per frame.
-  double max_offset_trans = 0.5;  ///< Uniform per-axis translation offset bound [m].
-  double max_offset_rot = 5.0 * M_PI / 180.0;  ///< Uniform per-axis rotation offset bound [rad].
+  double max_offset_trans = 0.2;  ///< Uniform per-axis translation offset bound [m] (thresholds v2).
+  double max_offset_rot = 4.0 * M_PI / 180.0;  ///< Uniform per-axis rotation offset bound [rad] (thresholds v2).
 
   /// A direction is degenerate when the RMS final error along it exceeds these.
   /// Defaults follow the convergence thresholds of Nubert et al. (2022).

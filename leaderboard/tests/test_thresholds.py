@@ -37,3 +37,23 @@ def test_missing_key_is_rejected(tmp_path: Path):
     path.write_text(yaml.safe_dump(config))
     with pytest.raises(ValueError, match="drift_onset_position_error_m"):
         thresholds.load(path)
+
+
+def test_free_direction_clears_threshold_by_four_sigma():
+    # The v2 rule: a truly free direction scores (b / sqrt(3) / thr)^2, and with
+    # N samples the second moment of a uniform variable has relative std
+    # sqrt(N^-1 * (9/5 - 1)) ~ 0.063 at N = 200. Require >= 1 + 4 sigma.
+    labels = thresholds.load()["labels"]
+    mc, thr = labels["monte_carlo"], labels["degeneracy_threshold"]
+    rel_std = (0.8 / mc["num_samples"]) ** 0.5
+    for b, t in ((mc["max_offset_trans_m"], thr["trans_m"]), (mc["max_offset_rot_deg"], thr["rot_deg"])):
+        assert (b / 3**0.5 / t) ** 2 >= 1 + 4 * rel_std
+
+
+def test_labeler_defaults_match_thresholds():
+    import re
+    from pathlib import Path
+    header = (Path(__file__).resolve().parents[2] / "labeler/include/degenbench/labeler/localizability.hpp").read_text()
+    mc = thresholds.load()["labels"]["monte_carlo"]
+    assert float(re.search(r"max_offset_trans = ([0-9.]+)", header).group(1)) == mc["max_offset_trans_m"]
+    assert float(re.search(r"max_offset_rot = ([0-9.]+) \* M_PI", header).group(1)) == mc["max_offset_rot_deg"]
