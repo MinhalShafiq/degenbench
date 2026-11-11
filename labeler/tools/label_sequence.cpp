@@ -3,7 +3,11 @@
 //   label_sequence --frames <dir with frames.csv> --map <map.pcd> --out <labels.csv>
 //                  [--crop-radius 60] [--map-voxel 0.2] [--coverage-distance 0.5]
 //                  [--every 1] [--max-frames 0] [--threads 4] [--samples 200]
-//                  [--T-map-world T.txt] [--no-refine 1]
+//                  [--T-map-world T.txt] [--no-refine 1] [--robustness 1]
+//
+// --robustness 1: also probe each frame with the wider thresholds-v1 offsets
+// (+-0.5 m, +-5 deg) and write robust_* columns. Secondary output only: whether
+// each solver recovers from large offsets, never used as the label.
 //
 // --T-map-world: 4x4 matrix (row-major text) taking ground-truth world
 // coordinates into the map frame, when the two differ.
@@ -43,6 +47,7 @@ struct Args {
   int samples = 200;
   std::string T_map_world;
   int no_refine = 0;
+  int robustness = 0;
 };
 
 [[noreturn]] void usage(const char* msg) {
@@ -50,7 +55,7 @@ struct Args {
             << "usage: label_sequence --frames DIR --map MAP.pcd --out LABELS.csv\n"
             << "  [--crop-radius M] [--map-voxel M] [--coverage-distance M]\n"
             << "  [--every N] [--max-frames N] [--threads N] [--samples N]\n"
-            << "  [--T-map-world T.txt] [--no-refine 1]\n";
+            << "  [--T-map-world T.txt] [--no-refine 1] [--robustness 1]\n";
   std::exit(2);
 }
 
@@ -75,6 +80,7 @@ Args parse(int argc, char** argv) {
   take("coverage-distance", a.coverage_distance); take("every", a.every);
   take("max-frames", a.max_frames); take("threads", a.threads); take("samples", a.samples);
   take("T-map-world", a.T_map_world); take("no-refine", a.no_refine);
+  take("robustness", a.robustness);
   if (!kv.empty()) usage(("unknown option --" + kv.begin()->first).c_str());
   if (a.frames.empty() || a.map.empty() || a.out.empty()) usage("--frames, --map and --out are required");
   if (a.every < 1) usage("--every must be >= 1");
@@ -133,7 +139,11 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 6; ++i) out << "," << s << "_eig" << i;
   for (const char* s : {"icp", "gicp"})
     for (const char* a : {"tx", "ty", "tz", "rx", "ry", "rz"}) out << "," << s << "_rms_" << a;
+  if (args.robustness) out << ",robust_icp_k,robust_gicp_k,robust_subspace_angle_deg,robust_solvers_agree";
   out << "\n";
+  LabelConfig robust_config = config;
+  robust_config.max_offset_trans = 0.5;               // thresholds v1 range
+  robust_config.max_offset_rot = 5.0 * M_PI / 180.0;
   sub << "index,solver";
   for (int c = 0; c < 6; ++c)
     for (int r = 0; r < 6; ++r) sub << ",v" << c << r;
@@ -176,6 +186,12 @@ int main(int argc, char** argv) {
       for (int i = 0; i < 6; ++i) out << "," << l->eigenvalues[i];
     for (const FrameLabel* l : {&d.point_to_plane_icp, &d.gicp})
       for (int i = 0; i < 6; ++i) out << "," << l->rms_error[i];
+    if (args.robustness) {
+      const DualSolverLabel r =
+          label_frame_dual(prepared_map, prepared_scan, ref.T_map_sensor, robust_config);
+      out << std::defaultfloat << "," << r.point_to_plane_icp.num_degenerate << ","
+          << r.gicp.num_degenerate << "," << r.subspace_angle_deg << "," << (r.solvers_agree ? 1 : 0);
+    }
     out << "\n" << std::defaultfloat;
     for (const auto& [solver, l] : {std::pair{"icp", &d.point_to_plane_icp}, std::pair{"gicp", &d.gicp}}) {
       sub << fr.index << "," << solver;
