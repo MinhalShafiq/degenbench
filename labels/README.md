@@ -17,8 +17,12 @@ This release follows the fallback planned for that case: every frame keeps
 both solvers' results and continuous errors, frames are classified by status,
 and the leaderboard scores detectors on consensus frames only. The rules were
 fixed in [`thresholds.yaml`](../leaderboard/thresholds.yaml) version 3 before
-any detector was scored. The pre-registered visual spot check of 50 frames has
-not been done yet, so this is a preview.
+any detector was scored. The pre-registered visual spot check of 50 frames also
+fails (26 of 37 judgeable consensus frames plausible against 90%,
+[results](../docs/results/2026-11-12-label-spot-check.md)). On Corridor01 18 of
+20 are plausible. On Laurel Caverns, none of the consensus-free labels is
+plausible: **treat Laurel Caverns' free labels as unreliable.** This release
+remains a preview.
 
 The agreement rate in each `meta.yaml` excludes unreliable-reference frames
 (Corridor01 85.4%), so it differs slightly from the 85.9% computed over all

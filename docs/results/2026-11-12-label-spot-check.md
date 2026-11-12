@@ -30,6 +30,62 @@ before any frame was rendered.
   directions cannot be drawn. Images and verdicts are listed per frame so
   they can be re-judged.
 
-## Results
+## Results — FAIL
 
-Pending.
+**26 of 37 judgeable consensus frames are plausible (70%); the bar is 90%.**
+
+| Sequence | Stratum | Plausible | Implausible | Unclear |
+| --- | --- | --- | --- | --- |
+| Corridor01 | consensus, free | 12 | 0 | 0 |
+| Corridor01 | consensus, none | 6 | 2 | 0 |
+| Laurel Caverns | consensus, free | 0 | 9 | 3 |
+| Laurel Caverns | consensus, none | 8 | 0 | 0 |
+| **All consensus** | | **26** | **11** | **3** |
+
+By sequence:
+- **Corridor01: 18 of 20 plausible (90%).** Every free label lies along the
+  corridor axis of a featureless stretch.
+  - Frames 239 and 244 are labelled constrained but look as uniform as the
+    free frames. Their frame-independent lambda_min (0.024, 0.027) sits
+    between the free frames (< 0.008) and typical constrained ones, which is
+    consistent with small features (door frames, fixtures) constraining the
+    axis. The verdict follows the views, as the protocol says.
+- **Laurel Caverns: 8 of 17 plausible.**
+  - Every judgeable consensus-free label is implausible: the free line cuts
+    across a passage, or runs steeply through floor and ceiling (frames 318,
+    322, 355, 377, 379, 385, 391, 619, 635).
+  - Unclear: frames 367, 371 and 372, a short connecting tube whose label runs
+    along it but whose end faces are visible.
+  - All constrained labels are plausible.
+
+This agrees with the detector diagnosis
+(docs/results/2026-11-12-detector-leaderboard-v0.1.md): the consensus-free
+frames on Laurel Caverns are convergence-basin failures shared by both
+solvers, not geometric degeneracy.
+
+### Disputed frames (reported, not scored)
+
+| Frame | Labels | Verdict |
+| --- | --- | --- |
+| Corridor01 0 | ICP rotation; GICP none | unclear (rotation not drawn) |
+| Corridor01 1 | ICP along axis; GICP none | GICP plausible (junction) |
+| Corridor01 112, 120 | ICP along axis; GICP none | ICP plausible (uniform corridor) |
+| Corridor01 254 | ICP along axis; GICP none | unclear (side opening) |
+| Laurel 0, 349, 361 | ICP none; GICP across the passage | ICP plausible |
+| Laurel 5 | ICP none; GICP rotation | unclear |
+| Laurel 347 | both across the passage, 15+ deg apart | neither |
+
+ICP is the plausible one on 6 of 9 decidable disputed frames. In
+Corridor01 the dispute is GICP missing the corridor degeneracy; in Laurel it
+is GICP reporting basin failures.
+
+### Consequences
+
+- The labels' visual check fails, joining the solver-agreement check. Labels
+  v0.1 stay a preview.
+- **The consensus-free class is trustworthy on Corridor01 and not on
+  Laurel Caverns.** Anyone using v0.1 should treat Laurel Caverns' free
+  labels as unreliable.
+- The label method needs a geometric check of its free directions, not only
+  agreement between two solvers that can share a failure. Any such change is
+  a new thresholds version, evaluated on sequences it was not developed on.
