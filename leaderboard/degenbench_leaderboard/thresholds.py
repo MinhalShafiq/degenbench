@@ -18,6 +18,8 @@ REQUIRED_KEYS = [
     "labels.solver_agreement_max_principal_angle_deg",
     "labels.pass.analytic_scenes",
     "labels.pass.real_frames.min_solver_agreement_rate",
+    "labels.release.axis_free_min_projection",
+    "leaderboard.scoring.headline_frames",
     "leaderboard.pass.min_detectors",
     "leaderboard.pass.min_datasets",
     "leaderboard.pass.min_lidar_types",

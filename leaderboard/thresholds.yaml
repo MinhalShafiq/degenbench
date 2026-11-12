@@ -4,7 +4,7 @@
 # separate, dated commit with its reason in the message, and results must be
 # reported against the version that was in force when they were produced.
 
-version: 2
+version: 3
 
 # Version history
 # - 1 (2026-11-09): initial pre-registration.
@@ -22,6 +22,15 @@ version: 2
 #   (robustness_probe). All pass conditions are unchanged. v2 is evaluated on
 #   SubT-MRS Corridor01, which no method decision has seen; Laurel Caverns
 #   results under v2 are reported as development results only.
+# - 3 (2026-11-12): release and scoring rules under the plan's fallback for
+#   solver-dependent labels, fixed before any detector has been scored. Reason:
+#   v2 failed the solver-agreement pass condition on the held-out sequence
+#   (85.9% vs 90%, docs/results/2026-11-11-subt-mrs-corridor01-thresholds-v2.md).
+#   Label generation is unchanged from v2; every pass condition is unchanged
+#   and the label pass condition stays FAIL. Added: labels.release (frame
+#   status, consensus subspace, per-axis rule), leaderboard.scoring (headline on
+#   consensus frames, disputed frames reported separately) and the
+#   frame-detection metric.
 
 # ---------------------------------------------------------------------------
 # Label generation
@@ -51,6 +60,21 @@ labels:
   # coordinates) is at most this.
   solver_agreement_max_principal_angle_deg: 15.0
 
+  # Release under the fallback (v3). Every frame keeps both solvers' results
+  # and continuous errors; none is dropped.
+  release:
+    frame_status:
+      consensus: reference refinement converged and the solvers agree
+      disputed: reference refinement converged and the solvers disagree
+      unreliable_reference: reference refinement did not converge
+    # Consensus subspace of dimension k: top-k eigenvectors of the mean of the
+    # two solvers' orthogonal projectors.
+    consensus_subspace: mean_projector_top_k
+    # Axis i (tx..rz) counts as free when the subspace projector's diagonal
+    # entry P_ii exceeds this; used for per-direction metrics and applied
+    # identically to labels and predictions.
+    axis_free_min_projection: 0.5
+
   pass:
     analytic_scenes:
       # Every scene must return exactly its known number of free directions,
@@ -71,11 +95,20 @@ leaderboard:
     min_detectors: 5
     min_datasets: 3
     min_lidar_types: 2
+  scoring:
+    # Headline metrics use consensus frames only. Disputed frames are scored
+    # separately against each solver and reported, never folded into the
+    # headline. Unreliable-reference frames are not scored.
+    headline_frames: consensus
+    disputed_frames: reported_against_each_solver
+    # A frame without a prediction counts as "no degeneracy" and is reported.
+    missing_prediction: k_zero
   metrics:
     - subspace_error_deg          # largest principal angle, predicted vs labelled
     - per_direction_precision
     - per_direction_recall
     - per_direction_f1
+    - frame_detection_f1          # degenerate (k > 0) or not, per frame
     - detection_delay_s           # at tunnel entry
     - false_alarms_per_km
     - runtime_ms_per_scan
