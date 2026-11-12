@@ -1,0 +1,95 @@
+dataset: subt_mrs
+sequence: corridor01
+role: held_out
+lidar: Velodyne VLP-16 (raw packets)
+source:
+  archive: SubT_MRS_Hawkins_Long_Corridor_RC.zip
+  bags:
+  - Long_Corridor_Rosbag/raw_data_core_2023-07-25-03-01-44.bag
+  topic: /velodyne_packets
+  ground_truth: challenge trajectory Corridor01 (5 Hz, 6-DoF)
+  map: corridor01.pcd
+preparation:
+  frame_rate_hz: 1.0
+  deskew: true
+  min_range_m: 0.5
+  max_gt_gap_s: 0.3
+  time_offset_s: 0.013701
+  time_offset_method: time_offset (gyro |w| vs ground-truth angular speed), peak correlation
+    0.958; t_bag = t_gt + offset
+  T_gt_lidar:
+  - - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_gt_lidar_method: identity, chosen by map fit (86.9% inliers within 0.3 m vs 30.7%
+    for the poorly determined hand-eye estimate)
+  T_map_world:
+  - - 0.131274129434
+    - -0.991097700203
+    - -0.0221912503652
+    - 1.76752078288
+  - - 0.987370452648
+    - 0.132717663273
+    - -0.0865194261018
+    - -7.09696221416
+  - - 0.088694375126
+    - -0.0105532225773
+    - 0.996002980575
+    - -0.897500211242
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_map_world_method: 'map_align + refine_alignment: 86.9% inliers within 0.3 m (5
+    m shift 6.8%, 20 m shift 1.2%)'
+  labeler: label_sequence --crop-radius 40 --robustness 1 (map voxel 0.2 m, coverage
+    distance 0.5 m)
+results: docs/results/2026-11-11-subt-mrs-corridor01-thresholds-v2.md
+thresholds_version: 3
+label_definition:
+  monte_carlo:
+    num_samples: 200
+    frame_rate_hz: 1.0
+    max_offset_trans_m: 0.2
+    max_offset_rot_deg: 4.0
+  degeneracy_threshold:
+    trans_m: 0.1
+    rot_deg: 2.0
+  solvers:
+  - point_to_plane_icp
+  - gicp
+  solver_agreement_max_principal_angle_deg: 15.0
+  release:
+    frame_status:
+      consensus: reference refinement converged and the solvers agree
+      disputed: reference refinement converged and the solvers disagree
+      unreliable_reference: reference refinement did not converge
+    consensus_subspace: mean_projector_top_k
+    axis_free_min_projection: 0.5
+release_tool_commit: 05f0d8313464d96318d13c8b1a67fc1173f3f1c0
+summary:
+  frames: 277
+  status_counts:
+    consensus: 223
+    disputed: 38
+    unreliable_reference: 16
+  solver_agreement_rate: 0.8544
+  consensus_k_counts:
+    0: 193
+    1: 30
+files:
+  labels.csv: cafc02f05beced62993cab159ff28b59ff7c2af368b44195be329a3ce4407eb0
+  subspaces.csv: 763a6fb4a3dae49d88001350719be400e300a0ff3a2644e36dafe3715d7bfc6c

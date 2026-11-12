@@ -1,0 +1,56 @@
+dataset: subt_mrs
+sequence: corridor01
+role: held_out
+lidar: Velodyne VLP-16 (raw packets)
+source:
+  archive: SubT_MRS_Hawkins_Long_Corridor_RC.zip
+  bags:
+  - Long_Corridor_Rosbag/raw_data_core_2023-07-25-03-01-44.bag
+  topic: /velodyne_packets
+  ground_truth: challenge trajectory Corridor01 (5 Hz, 6-DoF)
+  map: corridor01.pcd
+preparation:
+  frame_rate_hz: 1.0
+  deskew: true
+  min_range_m: 0.5
+  max_gt_gap_s: 0.3
+  time_offset_s: 0.013701
+  time_offset_method: time_offset (gyro |w| vs ground-truth angular speed), peak correlation 0.958; t_bag = t_gt + offset
+  T_gt_lidar:
+  - - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_gt_lidar_method: identity, chosen by map fit (86.9% inliers within 0.3 m vs 30.7% for the poorly determined hand-eye estimate)
+  T_map_world:
+  - - 0.131274129434
+    - -0.991097700203
+    - -0.0221912503652
+    - 1.76752078288
+  - - 0.987370452648
+    - 0.132717663273
+    - -0.0865194261018
+    - -7.09696221416
+  - - 0.088694375126
+    - -0.0105532225773
+    - 0.996002980575
+    - -0.897500211242
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_map_world_method: 'map_align + refine_alignment: 86.9% inliers within 0.3 m (5 m shift 6.8%, 20 m shift 1.2%)'
+  labeler: label_sequence --crop-radius 40 --robustness 1 (map voxel 0.2 m, coverage distance 0.5 m)
+results: docs/results/2026-11-11-subt-mrs-corridor01-thresholds-v2.md

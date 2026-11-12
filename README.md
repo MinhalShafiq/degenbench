@@ -4,12 +4,16 @@ Per-frame ground truth for LiDAR registration degeneracy on public real-world da
 a leaderboard of published degeneracy detectors scored against it, and a ROS 2 node
 that reports live when LiDAR localization cannot be trusted.
 
-> Status: early development. Nothing here is released yet.
+> Status: early development. Labels v0.1 (preview, two SubT-MRS sequences) are in
+> [`labels/`](labels). They do not meet the pre-registered solver-agreement bar
+> (85.9% vs 90% on the held-out sequence), so they ship under the planned
+> fallback, with consensus and disputed frames marked.
 
 ## Layout
 
 | Directory | Contents |
 | --- | --- |
+| `labels/` | Released labels, per dataset and sequence |
 | `converters/` | Dataset → unified ROS 2 bags, calibration, ground truth |
 | `labeler/` | C++ label generator (point-to-plane ICP and GICP), map preprocessing |
 | `detectors/` | C++ library of the scored degeneracy detectors |
