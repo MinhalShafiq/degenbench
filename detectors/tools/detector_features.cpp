@@ -12,7 +12,8 @@
 // num_correspondences, H{r}{c} (point-to-plane information, 36), M{r}{c}
 // (point-displacement metric, 36), xicp_vt{c}{r}, xicp_vr{c}{r} (block
 // eigenvectors, ascending), xicp_lct{j}, xicp_lcr{j}, xicp_lst{j}, xicp_lsr{j},
-// features_ms, xicp_ms. Parameters: [tx ty tz rx ry rz], metres and radians.
+// features_ms, xicp_ms, ref_T{r}{c} (reference pose T_map_sensor, 3 x 4
+// row-major; derived from the dataset's ground truth, keep local). Parameters: [tx ty tz rx ry rz], metres and radians.
 
 #include <chrono>
 #include <cstdio>
@@ -114,7 +115,10 @@ int main(int argc, char** argv) {
       for (int r = 0; r < 3; ++r) out << "," << m << c << r;
   for (const char* m : {"xicp_lct", "xicp_lcr", "xicp_lst", "xicp_lsr"})
     for (int j = 0; j < 3; ++j) out << "," << m << j;
-  out << ",features_ms,xicp_ms\n";
+  out << ",features_ms,xicp_ms";
+  for (int r = 0; r < 3; ++r)
+    for (int c = 0; c < 4; ++c) out << ",ref_T" << r << c;
+  out << "\n";
 
   int done = 0;
   for (const FrameRecord& fr : frames) {
@@ -154,7 +158,11 @@ int main(int argc, char** argv) {
       for (int j = 0; j < 3; ++j) out << "," << (*l)[j];
     out << std::fixed;
     out.precision(4);
-    out << "," << features_ms << "," << xicp_ms << "\n" << std::defaultfloat;
+    out << "," << features_ms << "," << xicp_ms;
+    out.precision(9);
+    for (int r = 0; r < 3; ++r)
+      for (int col = 0; col < 4; ++col) out << "," << ref.T_map_sensor.matrix()(r, col);
+    out << "\n" << std::defaultfloat;
     if (++done % 50 == 0) std::cerr << done << " frames\n";
   }
   std::cerr << "wrote " << done << " frames to " << args.out << "\n";
