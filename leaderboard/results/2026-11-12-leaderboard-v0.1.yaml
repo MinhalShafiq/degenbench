@@ -1,0 +1,1721 @@
+thresholds_version: 4
+sequences:
+  subt_mrs/laurel_caverns_handheld3:
+    role: development
+    reference_check:
+      frames: 946
+      max_refine_diff_m: 0.0
+      max_refine_diff_deg: 0.0
+      frames_outside_tolerance: 0
+  subt_mrs/corridor01:
+    role: held_out
+    reference_check:
+      frames: 277
+      max_refine_diff_m: 0.0
+      max_refine_diff_deg: 0.0
+      frames_outside_tolerance: 0
+detectors:
+  min_eigenvalue:
+    calibration:
+      tau: 2013.7711
+      dev_per_direction_micro_f1: 0.0202
+      plateau:
+      - 2013.7710928118356
+      - 2013.7710928118356
+    variants:
+      calibrated:
+        tau: 2013.7711
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.0
+              subspace_error_mean_deg: 90.0
+              frame_detection_f1: 0.0828
+              frame_detection_precision: 0.0432
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.0202
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 90.0
+                  median: 90.0
+                  match_rate: 0.0
+                frame_detection:
+                  precision: 0.0432
+                  recall: 1.0
+                  f1: 0.0828
+                  tp: 35
+                  fp: 775
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.0198
+                    recall: 1.0
+                    f1: 0.0387
+                    tp: 16
+                    fp: 794
+                    fn: 0
+                  ty:
+                    precision: 0.0025
+                    recall: 1.0
+                    f1: 0.0049
+                    tp: 2
+                    fp: 808
+                    fn: 0
+                  tz:
+                    precision: 0.01
+                    recall: 1.0
+                    f1: 0.0198
+                    tp: 8
+                    fp: 794
+                    fn: 0
+                  rx:
+                    precision: 0.0054
+                    recall: 1.0
+                    f1: 0.0107
+                    tp: 1
+                    fp: 185
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 34
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0102
+                  recall: 1.0
+                  f1: 0.0202
+                  tp: 27
+                  fp: 2623
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.0
+              subspace_error_mean_deg: 90.0
+              frame_detection_f1: 0.2372
+              frame_detection_precision: 0.1345
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.0748
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 90.0
+                  median: 90.0
+                  match_rate: 0.0
+                frame_detection:
+                  precision: 0.1345
+                  recall: 1.0
+                  f1: 0.2372
+                  tp: 30
+                  fp: 193
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.1031
+                    recall: 1.0
+                    f1: 0.187
+                    tp: 23
+                    fp: 200
+                    fn: 0
+                  ty:
+                    precision: 0.0476
+                    recall: 1.0
+                    f1: 0.0909
+                    tp: 7
+                    fp: 140
+                    fn: 0
+                  tz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 223
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 171
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0389
+                  recall: 1.0
+                  f1: 0.0748
+                  tp: 30
+                  fp: 742
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+    runtime:
+      subt_mrs/laurel_caverns_handheld3:
+        median_ms: 0.8598
+        p95_ms: 2.0747
+      subt_mrs/corridor01:
+        median_ms: 0.8349
+        p95_ms: 2.7986
+  condition_number:
+    calibration:
+      tau: 43.9531
+      dev_per_direction_micro_f1: 0.0243
+      plateau:
+      - 43.95313711155059
+      - 43.95313711155059
+    variants:
+      calibrated:
+        tau: 43.9531
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.0123
+              subspace_error_mean_deg: 88.7735
+              frame_detection_f1: 0.0838
+              frame_detection_precision: 0.0437
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.0243
+              disputed_match_rate_vs_icp: 0.0472
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 88.7735
+                  median: 90.0
+                  match_rate: 0.0123
+                frame_detection:
+                  precision: 0.0437
+                  recall: 1.0
+                  f1: 0.0838
+                  tp: 35
+                  fp: 765
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.0211
+                    recall: 1.0
+                    f1: 0.0414
+                    tp: 16
+                    fp: 741
+                    fn: 0
+                  ty:
+                    precision: 0.0033
+                    recall: 1.0
+                    f1: 0.0065
+                    tp: 2
+                    fp: 611
+                    fn: 0
+                  tz:
+                    precision: 0.0105
+                    recall: 0.75
+                    f1: 0.0208
+                    tp: 6
+                    fp: 564
+                    fn: 2
+                  rx:
+                    precision: 0.0115
+                    recall: 1.0
+                    f1: 0.0227
+                    tp: 1
+                    fp: 86
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 5
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0123
+                  recall: 0.9259
+                  f1: 0.0243
+                  tp: 25
+                  fp: 2007
+                  fn: 2
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 85.8831
+                    median: 90.0
+                    match_rate: 0.0472
+                  gicp:
+                    mean: 89.0766
+                    median: 90.0
+                    match_rate: 0.0
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.0
+              subspace_error_mean_deg: 90.0
+              frame_detection_f1: 0.2372
+              frame_detection_precision: 0.1345
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.0689
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 90.0
+                  median: 90.0
+                  match_rate: 0.0
+                frame_detection:
+                  precision: 0.1345
+                  recall: 1.0
+                  f1: 0.2372
+                  tp: 30
+                  fp: 193
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.1031
+                    recall: 1.0
+                    f1: 0.187
+                    tp: 23
+                    fp: 200
+                    fn: 0
+                  ty:
+                    precision: 0.0323
+                    recall: 1.0
+                    f1: 0.0625
+                    tp: 7
+                    fp: 210
+                    fn: 0
+                  tz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 223
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 170
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0357
+                  recall: 1.0
+                  f1: 0.0689
+                  tp: 30
+                  fp: 811
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+    runtime:
+      subt_mrs/laurel_caverns_handheld3:
+        median_ms: 0.8598
+        p95_ms: 2.0747
+      subt_mrs/corridor01:
+        median_ms: 0.8349
+        p95_ms: 2.7986
+  x_icp:
+    calibration:
+      tau: 0.4688
+      dev_per_direction_micro_f1: 0.0142
+      plateau:
+      - 0.4688383695217362
+      - 0.4688383695217362
+    variants:
+      calibrated:
+        tau: 0.4688
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.8235
+              subspace_error_mean_deg: 15.8147
+              frame_detection_f1: 0.0276
+              frame_detection_precision: 0.0182
+              frame_detection_recall: 0.0571
+              per_direction_micro_f1: 0.0142
+              disputed_match_rate_vs_icp: 0.685
+              disputed_match_rate_vs_gicp: 0.1575
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 15.8147
+                  median: 0.0
+                  match_rate: 0.8235
+                frame_detection:
+                  precision: 0.0182
+                  recall: 0.0571
+                  f1: 0.0276
+                  tp: 2
+                  fp: 108
+                  fn: 33
+                per_direction:
+                  tx:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 48
+                    fn: 16
+                  ty:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 2
+                  tz:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 8
+                  rx:
+                    precision: 0.0152
+                    recall: 1.0
+                    f1: 0.0299
+                    tp: 1
+                    fp: 65
+                    fn: 0
+                  ry:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0088
+                  recall: 0.037
+                  f1: 0.0142
+                  tp: 1
+                  fp: 113
+                  fn: 26
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 27.3837
+                    median: 0.0
+                    match_rate: 0.685
+                  gicp:
+                    mean: 75.5861
+                    median: 90.0
+                    match_rate: 0.1575
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.435
+              subspace_error_mean_deg: 50.9322
+              frame_detection_f1: 0.3636
+              frame_detection_precision: 0.2222
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.2372
+              disputed_match_rate_vs_icp: 0.1053
+              disputed_match_rate_vs_gicp: 0.2368
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 50.9322
+                  median: 90.0
+                  match_rate: 0.435
+                frame_detection:
+                  precision: 0.2222
+                  recall: 1.0
+                  f1: 0.3636
+                  tp: 30
+                  fp: 105
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.2072
+                    recall: 1.0
+                    f1: 0.3433
+                    tp: 23
+                    fp: 88
+                    fn: 0
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 102
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 3
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.1345
+                  recall: 1.0
+                  f1: 0.2372
+                  tp: 30
+                  fp: 193
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 79.5026
+                    median: 90.0
+                    match_rate: 0.1053
+                  gicp:
+                    mean: 68.6842
+                    median: 90.0
+                    match_rate: 0.2368
+      published_1:
+        tau: 1.0
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.6543
+              subspace_error_mean_deg: 31.0168
+              frame_detection_f1: 0.042
+              frame_detection_precision: 0.0239
+              frame_detection_recall: 0.1714
+              per_direction_micro_f1: 0.0053
+              disputed_match_rate_vs_icp: 0.6378
+              disputed_match_rate_vs_gicp: 0.063
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 31.0168
+                  median: 0.0
+                  match_rate: 0.6543
+                frame_detection:
+                  precision: 0.0239
+                  recall: 0.1714
+                  f1: 0.042
+                  tp: 6
+                  fp: 245
+                  fn: 29
+                per_direction:
+                  tx:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 185
+                    fn: 16
+                  ty:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 5
+                    fn: 2
+                  tz:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 3
+                    fn: 8
+                  rx:
+                    precision: 0.0078
+                    recall: 1.0
+                    f1: 0.0154
+                    tp: 1
+                    fp: 128
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 10
+                    fn: 0
+                  rz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 16
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0029
+                  recall: 0.037
+                  f1: 0.0053
+                  tp: 1
+                  fp: 347
+                  fn: 26
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 30.7784
+                    median: 0.0
+                    match_rate: 0.6378
+                  gicp:
+                    mean: 82.9462
+                    median: 90.0
+                    match_rate: 0.063
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.1794
+              subspace_error_mean_deg: 73.8565
+              frame_detection_f1: 0.2817
+              frame_detection_precision: 0.1639
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.1639
+              disputed_match_rate_vs_icp: 0.0263
+              disputed_match_rate_vs_gicp: 0.2105
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 73.8565
+                  median: 90.0
+                  match_rate: 0.1794
+                frame_detection:
+                  precision: 0.1639
+                  recall: 1.0
+                  f1: 0.2817
+                  tp: 30
+                  fp: 153
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.1575
+                    recall: 1.0
+                    f1: 0.2722
+                    tp: 23
+                    fp: 123
+                    fn: 0
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 175
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0893
+                  recall: 1.0
+                  f1: 0.1639
+                  tp: 30
+                  fp: 306
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 87.6316
+                    median: 90.0
+                    match_rate: 0.0263
+                  gicp:
+                    mean: 71.0526
+                    median: 90.0
+                    match_rate: 0.2105
+    runtime:
+      subt_mrs/laurel_caverns_handheld3:
+        median_ms: 0.9773
+        p95_ms: 2.2898
+      subt_mrs/corridor01:
+        median_ms: 0.9342
+        p95_ms: 3.073
+  dcreg:
+    calibration:
+      tau: 50.4155
+      dev_per_direction_micro_f1: 0.0215
+      plateau:
+      - 50.415494248318744
+      - 50.415494248318744
+    variants:
+      calibrated:
+        tau: 50.4155
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.8765
+              subspace_error_mean_deg: 11.0452
+              frame_detection_f1: 0.0198
+              frame_detection_precision: 0.0152
+              frame_detection_recall: 0.0286
+              per_direction_micro_f1: 0.0215
+              disputed_match_rate_vs_icp: 0.6772
+              disputed_match_rate_vs_gicp: 0.1969
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 11.0452
+                  median: 0.0
+                  match_rate: 0.8765
+                frame_detection:
+                  precision: 0.0152
+                  recall: 0.0286
+                  f1: 0.0198
+                  tp: 1
+                  fp: 65
+                  fn: 34
+                per_direction:
+                  tx:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 16
+                  ty:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 2
+                  tz:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 8
+                  rx:
+                    precision: 0.0156
+                    recall: 1.0
+                    f1: 0.0308
+                    tp: 1
+                    fp: 63
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 2
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0152
+                  recall: 0.037
+                  f1: 0.0215
+                  tp: 1
+                  fp: 65
+                  fn: 26
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 28.6211
+                    median: 0.0
+                    match_rate: 0.6772
+                  gicp:
+                    mean: 72.2835
+                    median: 90.0
+                    match_rate: 0.1969
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.2287
+              subspace_error_mean_deg: 69.3396
+              frame_detection_f1: 0.297
+              frame_detection_precision: 0.1744
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.2203
+              disputed_match_rate_vs_icp: 0.0263
+              disputed_match_rate_vs_gicp: 0.0526
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 69.3396
+                  median: 90.0
+                  match_rate: 0.2287
+                frame_detection:
+                  precision: 0.1744
+                  recall: 1.0
+                  f1: 0.297
+                  tp: 30
+                  fp: 142
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 1.0
+                    recall: 0.7826
+                    f1: 0.878
+                    tp: 18
+                    fp: 0
+                    fn: 5
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 164
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.1269
+                  recall: 0.8333
+                  f1: 0.2203
+                  tp: 25
+                  fp: 172
+                  fn: 5
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 82.036
+                    median: 87.5019
+                    match_rate: 0.0263
+                  gicp:
+                    mean: 84.9291
+                    median: 90.0
+                    match_rate: 0.0526
+      published_10:
+        tau: 10.0
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.5247
+              subspace_error_mean_deg: 42.639
+              frame_detection_f1: 0.0798
+              frame_detection_precision: 0.0437
+              frame_detection_recall: 0.4571
+              per_direction_micro_f1: 0.005
+              disputed_match_rate_vs_icp: 0.5591
+              disputed_match_rate_vs_gicp: 0.0787
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 42.639
+                  median: 0.0
+                  match_rate: 0.5247
+                frame_detection:
+                  precision: 0.0437
+                  recall: 0.4571
+                  f1: 0.0798
+                  tp: 16
+                  fp: 350
+                  fn: 19
+                per_direction:
+                  tx:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 56
+                    fn: 16
+                  ty:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 2
+                  tz:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 8
+                  rx:
+                    precision: 0.0033
+                    recall: 1.0
+                    f1: 0.0066
+                    tp: 1
+                    fp: 302
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 14
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0027
+                  recall: 0.037
+                  f1: 0.005
+                  tp: 1
+                  fp: 372
+                  fn: 26
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 37.4172
+                    median: 0.0
+                    match_rate: 0.5591
+                  gicp:
+                    mean: 80.7219
+                    median: 90.0
+                    match_rate: 0.0787
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.1031
+              subspace_error_mean_deg: 80.7175
+              frame_detection_f1: 0.2609
+              frame_detection_precision: 0.15
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.1765
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 80.7175
+                  median: 90.0
+                  match_rate: 0.1031
+                frame_detection:
+                  precision: 0.15
+                  recall: 1.0
+                  f1: 0.2609
+                  tp: 30
+                  fp: 170
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.2212
+                    recall: 1.0
+                    f1: 0.3622
+                    tp: 23
+                    fp: 81
+                    fn: 0
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 189
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 10
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0968
+                  recall: 1.0
+                  f1: 0.1765
+                  tp: 30
+                  fp: 280
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 84.5738
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 88.567
+                    median: 90.0
+                    match_rate: 0.0
+      published_50:
+        tau: 50.0
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.8741
+              subspace_error_mean_deg: 11.2674
+              frame_detection_f1: 0.0194
+              frame_detection_precision: 0.0147
+              frame_detection_recall: 0.0286
+              per_direction_micro_f1: 0.0211
+              disputed_match_rate_vs_icp: 0.6772
+              disputed_match_rate_vs_gicp: 0.1969
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 11.2674
+                  median: 0.0
+                  match_rate: 0.8741
+                frame_detection:
+                  precision: 0.0147
+                  recall: 0.0286
+                  f1: 0.0194
+                  tp: 1
+                  fp: 67
+                  fn: 34
+                per_direction:
+                  tx:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 16
+                  ty:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 2
+                  tz:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 8
+                  rx:
+                    precision: 0.0152
+                    recall: 1.0
+                    f1: 0.0299
+                    tp: 1
+                    fp: 65
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 2
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0147
+                  recall: 0.037
+                  f1: 0.0211
+                  tp: 1
+                  fp: 67
+                  fn: 26
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 28.6211
+                    median: 0.0
+                    match_rate: 0.6772
+                  gicp:
+                    mean: 72.2835
+                    median: 90.0
+                    match_rate: 0.1969
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.2287
+              subspace_error_mean_deg: 69.3808
+              frame_detection_f1: 0.297
+              frame_detection_precision: 0.1744
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.2281
+              disputed_match_rate_vs_icp: 0.0263
+              disputed_match_rate_vs_gicp: 0.0526
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 69.3808
+                  median: 90.0
+                  match_rate: 0.2287
+                frame_detection:
+                  precision: 0.1744
+                  recall: 1.0
+                  f1: 0.297
+                  tp: 30
+                  fp: 142
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 1.0
+                    recall: 0.8261
+                    f1: 0.9048
+                    tp: 19
+                    fp: 0
+                    fn: 4
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 164
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 8
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.1313
+                  recall: 0.8667
+                  f1: 0.2281
+                  tp: 26
+                  fp: 172
+                  fn: 4
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 82.036
+                    median: 87.5019
+                    match_rate: 0.0263
+                  gicp:
+                    mean: 84.9291
+                    median: 90.0
+                    match_rate: 0.0526
+    runtime:
+      subt_mrs/laurel_caverns_handheld3:
+        median_ms: 0.8598
+        p95_ms: 2.0747
+      subt_mrs/corridor01:
+        median_ms: 0.8349
+        p95_ms: 2.7986
+  frame_independent:
+    calibration:
+      tau: 0.3323
+      dev_per_direction_micro_f1: 0.0162
+      plateau:
+      - 0.3323117428834978
+      - 0.3323117428834978
+    variants:
+      calibrated:
+        tau: 0.3323
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.0
+              subspace_error_mean_deg: 90.0
+              frame_detection_f1: 0.0828
+              frame_detection_precision: 0.0432
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.0162
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 90.0
+                  median: 90.0
+                  match_rate: 0.0
+                frame_detection:
+                  precision: 0.0432
+                  recall: 1.0
+                  f1: 0.0828
+                  tp: 35
+                  fp: 775
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.0202
+                    recall: 1.0
+                    f1: 0.0397
+                    tp: 16
+                    fp: 775
+                    fn: 0
+                  ty:
+                    precision: 0.0018
+                    recall: 0.5
+                    f1: 0.0035
+                    tp: 1
+                    fp: 561
+                    fn: 1
+                  tz:
+                    precision: 0.0
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 155
+                    fn: 8
+                  rx:
+                    precision: 0.0047
+                    recall: 1.0
+                    f1: 0.0093
+                    tp: 1
+                    fp: 214
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 100
+                    fn: 0
+                  rz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 370
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0082
+                  recall: 0.6667
+                  f1: 0.0162
+                  tp: 18
+                  fp: 2175
+                  fn: 9
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 89.6725
+                    median: 90.0
+                    match_rate: 0.0
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.0
+              subspace_error_mean_deg: 90.0
+              frame_detection_f1: 0.2372
+              frame_detection_precision: 0.1345
+              frame_detection_recall: 1.0
+              per_direction_micro_f1: 0.076
+              disputed_match_rate_vs_icp: 0.0
+              disputed_match_rate_vs_gicp: 0.0
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 90.0
+                  median: 90.0
+                  match_rate: 0.0
+                frame_detection:
+                  precision: 0.1345
+                  recall: 1.0
+                  f1: 0.2372
+                  tp: 30
+                  fp: 193
+                  fn: 0
+                per_direction:
+                  tx:
+                    precision: 0.115
+                    recall: 1.0
+                    f1: 0.2063
+                    tp: 23
+                    fp: 177
+                    fn: 0
+                  ty:
+                    precision: 0.2
+                    recall: 1.0
+                    f1: 0.3333
+                    tp: 7
+                    fp: 28
+                    fn: 0
+                  tz:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 218
+                    fn: 0
+                  rx:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 200
+                    fn: 0
+                  ry:
+                    precision: 0.0
+                    recall: null
+                    f1: 0.0
+                    tp: 0
+                    fp: 106
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 0.0395
+                  recall: 1.0
+                  f1: 0.076
+                  tp: 30
+                  fp: 729
+                  fn: 0
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+                  gicp:
+                    mean: 90.0
+                    median: 90.0
+                    match_rate: 0.0
+      published_0.01:
+        tau: 0.01
+        sequences:
+          subt_mrs/laurel_caverns_handheld3:
+            headline:
+              subspace_match_rate: 0.9568
+              subspace_error_mean_deg: 3.8889
+              frame_detection_f1: 0.0
+              frame_detection_precision: null
+              frame_detection_recall: 0.0
+              per_direction_micro_f1: 0.0
+              disputed_match_rate_vs_icp: 0.6693
+              disputed_match_rate_vs_gicp: 0.2126
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 810
+                disputed: 127
+                unreliable_reference: 9
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 3.8889
+                  median: 0.0
+                  match_rate: 0.9568
+                frame_detection:
+                  precision: null
+                  recall: 0.0
+                  f1: 0.0
+                  tp: 0
+                  fp: 0
+                  fn: 35
+                per_direction:
+                  tx:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 16
+                  ty:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 2
+                  tz:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 8
+                  rx:
+                    precision: null
+                    recall: 0.0
+                    f1: 0.0
+                    tp: 0
+                    fp: 0
+                    fn: 1
+                  ry:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: null
+                  recall: 0.0
+                  f1: 0.0
+                  tp: 0
+                  fp: 0
+                  fn: 27
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 29.7638
+                    median: 0.0
+                    match_rate: 0.6693
+                  gicp:
+                    mean: 70.8661
+                    median: 90.0
+                    match_rate: 0.2126
+          subt_mrs/corridor01:
+            headline:
+              subspace_match_rate: 0.991
+              subspace_error_mean_deg: 1.1914
+              frame_detection_f1: 0.9655
+              frame_detection_precision: 1.0
+              frame_detection_recall: 0.9333
+              per_direction_micro_f1: 0.9655
+              disputed_match_rate_vs_icp: 0.3947
+              disputed_match_rate_vs_gicp: 0.6579
+            full:
+              thresholds_version: 4
+              frames:
+                consensus: 223
+                disputed: 38
+                unreliable_reference: 16
+              missing_predictions: 0
+              consensus:
+                subspace_error_deg:
+                  mean: 1.1914
+                  median: 0.0
+                  match_rate: 0.991
+                frame_detection:
+                  precision: 1.0
+                  recall: 0.9333
+                  f1: 0.9655
+                  tp: 28
+                  fp: 0
+                  fn: 2
+                per_direction:
+                  tx:
+                    precision: 1.0
+                    recall: 0.913
+                    f1: 0.9545
+                    tp: 21
+                    fp: 0
+                    fn: 2
+                  ty:
+                    precision: 1.0
+                    recall: 1.0
+                    f1: 1.0
+                    tp: 7
+                    fp: 0
+                    fn: 0
+                  tz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rx:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  ry:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                  rz:
+                    precision: null
+                    recall: null
+                    f1: null
+                    tp: 0
+                    fp: 0
+                    fn: 0
+                per_direction_micro:
+                  precision: 1.0
+                  recall: 0.9333
+                  f1: 0.9655
+                  tp: 28
+                  fp: 0
+                  fn: 2
+              disputed:
+                subspace_error_deg_vs:
+                  icp:
+                    mean: 45.3221
+                    median: 24.9102
+                    match_rate: 0.3947
+                  gicp:
+                    mean: 30.4191
+                    median: 5.1215
+                    match_rate: 0.6579
+    runtime:
+      subt_mrs/laurel_caverns_handheld3:
+        median_ms: 0.8598
+        p95_ms: 2.0747
+      subt_mrs/corridor01:
+        median_ms: 0.8349
+        p95_ms: 2.7986
