@@ -33,9 +33,9 @@ run() {
     "${IMAGE}" bash -c "$1"
 }
 
-TEST_CMD="cmake -S labeler -B build/labeler -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  && cmake --build build/labeler \
-  && ctest --test-dir build/labeler --output-on-failure \
+TEST_CMD="cmake -S . -B build/all -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  && cmake --build build/all \
+  && ctest --test-dir build/all --output-on-failure \
   && (cd leaderboard && python3 -m pytest -q -p no:cacheprovider) \
   && (cd converters && python3 -m pytest -q -p no:cacheprovider)"
 

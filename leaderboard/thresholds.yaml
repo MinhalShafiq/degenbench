@@ -4,7 +4,7 @@
 # separate, dated commit with its reason in the message, and results must be
 # reported against the version that was in force when they were produced.
 
-version: 3
+version: 4
 
 # Version history
 # - 1 (2026-11-09): initial pre-registration.
@@ -31,6 +31,10 @@ version: 3
 #   status, consensus subspace, per-axis rule), leaderboard.scoring (headline on
 #   consensus frames, disputed frames reported separately) and the
 #   frame-detection metric.
+# - 4 (2026-11-12): detector protocol, fixed before any detector has been run
+#   on real data. Adds leaderboard.detectors (the five scored detectors, their
+#   inputs and published thresholds) and leaderboard.calibration (one scalar
+#   per detector, fitted on development sequences only). Nothing else changes.
 
 # ---------------------------------------------------------------------------
 # Label generation
@@ -95,6 +99,37 @@ leaderboard:
     min_detectors: 5
     min_datasets: 3
     min_lidar_types: 2
+  # Every detector is evaluated at the label's reference pose with the same
+  # correspondences as the labeler: scan and map (after 0.2 m map voxels) both
+  # prepared at 0.25 m with normals from 10 neighbours, nearest map point
+  # within 1.0 m.
+  # Parameters [tx ty tz rx ry rz] in m and rad; predicted subspaces are mapped
+  # to normalized coordinates (t / 0.10 m, r / 2 deg) before scoring. All are
+  # reimplementations from the papers (detectors/, leaderboard detectors.py).
+  detectors:
+    min_eigenvalue:       # Zhang, Kaess, Singh 2016: eig(H), flag lambda < tau
+      published: []
+    condition_number:     # eig(H), flag lambda_max / lambda > tau
+      published: []
+    x_icp:                # Tuna et al. 2023: block eigvecs not fully localizable
+      kappa_f: 0.1736     # cos 80 deg (paper, Velodyne)
+      kappa: [250, 180, 35]
+      published: [1.0]    # scale on kappa
+    dcreg:                # Schur complements per block, flag lambda_max / lambda > tau
+      published: [10, 50] # "typically between 10 and 50"
+    frame_independent:    # generalized eig H v = lambda M v, flag lambda < tau
+      published: [0.01]
+  calibration:
+    # One scalar per detector (X-ICP: a common scale on kappa), chosen on the
+    # consensus frames of the development sequences only, then frozen and
+    # applied unchanged to held-out sequences.
+    sequences: development
+    objective: per_direction_micro_f1
+    grid: 200 log-spaced values spanning the detector's scores on those frames
+    tie_break: geometric middle of the first contiguous run at the maximum
+    # The leaderboard headline is each detector's calibrated variant on the
+    # held-out sequences; published variants are reported next to it.
+    headline: calibrated_on_held_out
   scoring:
     # Headline metrics use consensus frames only. Disputed frames are scored
     # separately against each solver and reported, never folded into the
