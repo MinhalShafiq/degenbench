@@ -76,3 +76,17 @@ def test_predictions_roundtrip(tmp_path):
     back = read_predictions(tmp_path / "p.csv")
     assert back[4].shape == (6, 0)
     assert subspace_error_deg(back[3], b) < 1e-5
+
+
+def test_roles_come_from_the_thresholds_in_force():
+    import pytest
+    from degenbench_leaderboard import thresholds
+    from degenbench_leaderboard.leaderboard import sequence_role
+    config = thresholds.load()
+    dev = config["labels"]["evaluation"]["development_sequences"]
+    held = config["labels"]["evaluation"]["held_out_sequences"]
+    assert not set(dev) & set(held)
+    assert sequence_role(config, dev[0]) == "development"
+    assert sequence_role(config, held[0]) == "held_out"
+    with pytest.raises(ValueError):
+        sequence_role(config, "nowhere/none")

@@ -4,7 +4,7 @@
 # separate, dated commit with its reason in the message, and results must be
 # reported against the version that was in force when they were produced.
 
-version: 4
+version: 5
 
 # Version history
 # - 1 (2026-11-09): initial pre-registration.
@@ -35,6 +35,14 @@ version: 4
 #   on real data. Adds leaderboard.detectors (the five scored detectors, their
 #   inputs and published thresholds) and leaderboard.calibration (one scalar
 #   per detector, fitted on development sequences only). Nothing else changes.
+# - 5 (2026-11-12): evaluation sets for the next round, fixed before any
+#   data of the new sequences has been processed. Corridor01 has been used as
+#   the held-out sequence for labels v2 and leaderboard v0.1 and now moves to
+#   development; SubT-MRS Floor01 and Corridor02 become held out. Reason: v4
+#   calibration on Laurel Caverns alone failed because its consensus free
+#   directions are not geometric (docs/results/2026-11-12-detector-leaderboard-v0.1.md);
+#   pooling Corridor01 gives calibration geometric positives. The calibration
+#   rule itself is unchanged. Labels and every pass condition are unchanged.
 
 # ---------------------------------------------------------------------------
 # Label generation
@@ -51,8 +59,9 @@ labels:
     max_offset_trans_m: 0.5
     max_offset_rot_deg: 5.0
   evaluation:
-    development_sequences: [subt_mrs/laurel_caverns_handheld3]
-    held_out_sequences: [subt_mrs/corridor01]
+    development_sequences: [subt_mrs/laurel_caverns_handheld3, subt_mrs/corridor01]
+    held_out_sequences: [subt_mrs/floor01, subt_mrs/corridor02]
+    # Earlier rounds, for the record: v2-v4 held out subt_mrs/corridor01.
   # A direction is degenerate when the RMS final registration error along it,
   # in threshold-normalized coordinates (t / 0.10 m, r / 2 deg), exceeds 1.
   degeneracy_threshold:

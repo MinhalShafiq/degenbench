@@ -5,7 +5,9 @@
         --sequence ../labels/v0.1/subt_mrs/corridor01 corridor01_features.csv \\
         --out results.yaml [--predictions-dir DIR]
 
-Each sequence's role (development or held_out) comes from its meta.yaml.
+Each sequence's role (development or held_out) comes from the thresholds file
+in force (labels.evaluation), never from the release: a sequence that has been
+held out once becomes development in later rounds.
 Features come from `detector_features`, run with the parameters in meta.yaml;
 their reference poses are checked against the labels frame by frame.
 """
@@ -41,6 +43,15 @@ def check_reference(frames: list[Frame], labels_csv: Path, feats: dict[int, Feat
     bad = [i for i, a, b in zip(rows, dt, dr) if a > REFINE_TOLERANCE_M or b > REFINE_TOLERANCE_DEG]
     return {"frames": len(rows), "max_refine_diff_m": max(dt), "max_refine_diff_deg": max(dr),
             "frames_outside_tolerance": len(bad)}
+
+
+def sequence_role(config: dict[str, Any], name: str) -> str:
+    ev = thresholds.get(config, "labels.evaluation")
+    if name in ev["development_sequences"]:
+        return "development"
+    if name in ev["held_out_sequences"]:
+        return "held_out"
+    raise ValueError(f"{name} is in neither evaluation set of thresholds version {config['version']}")
 
 
 def predictions(det: Detector, feats: dict[int, Features], tau: float) -> dict[int, np.ndarray]:
@@ -104,8 +115,9 @@ def main(argv: list[str] | None = None) -> int:
         feats = {f.index: all_feats[f.index] for f in frames if f.index in all_feats}
         check = check_reference(frames, Path(release_dir) / "labels.csv", feats)
         name = f"{meta['dataset']}/{meta['sequence']}"
-        seqs.append({"name": name, "role": meta["role"], "frames": frames, "feats": feats, "check": check})
-        print(f"{name} ({meta['role']}): reference check {check}", file=sys.stderr)
+        role = sequence_role(config, name)
+        seqs.append({"name": name, "role": role, "frames": frames, "feats": feats, "check": check})
+        print(f"{name} ({role}): reference check {check}", file=sys.stderr)
 
     dev = [(s["frames"], s["feats"]) for s in seqs if s["role"] == "development"]
     if not dev:
