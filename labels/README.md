@@ -3,6 +3,22 @@
 Per-frame LiDAR registration degeneracy labels for public datasets. Labels only:
 the raw data must be downloaded from each dataset's own site.
 
+## v0.2 (2026-11-12): adds SubT-MRS Floor01 (held out under thresholds v5)
+
+[v0.2](v0.2/subt_mrs) contains the two v0.1 sequences, rebuilt with the same
+labels under thresholds v5 (Corridor01 is now development), plus Floor01:
+
+| Sequence | Role | Frames | Consensus | Disputed | Unreliable reference | Consensus frames with free directions |
+| --- | --- | --- | --- | --- | --- | --- |
+| [SubT-MRS Floor01](v0.2/subt_mrs/floor01) | held out | 413 | 184 | 208 | 21 | 1 |
+
+**Floor01 agreement is 44.6%.** Most disagreements are ICP reporting a free
+vertical axis. That comes from a bias, not a degeneracy: ICP's minimum sits
+14–20 cm from the GICP-refined reference
+([results](../docs/results/2026-11-12-subt-mrs-floor01-held-out.md)).
+Floor01's ICP results and disputed frames are therefore not evidence of
+degeneracy.
+
 ## v0.1 (2026-11-12): fallback release, preview
 
 | Sequence | Role | Frames | Consensus | Disputed | Unreliable reference | Consensus frames with free directions |

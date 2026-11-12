@@ -1,6 +1,6 @@
 dataset: subt_mrs
 sequence: corridor01
-role: held_out
+role: development  # held out in thresholds v2-v4
 lidar: Velodyne VLP-16 (raw packets)
 source:
   archive: SubT_MRS_Hawkins_Long_Corridor_RC.zip

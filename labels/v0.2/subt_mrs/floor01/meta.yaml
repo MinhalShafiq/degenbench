@@ -1,0 +1,97 @@
+dataset: subt_mrs
+sequence: floor01
+role: held_out
+lidar: Velodyne VLP-16 (raw packets)
+source:
+  archive: SubT_MRS_Hawkins_Multi_Floor_LegRobot.zip
+  bags:
+  - Multi_Floor_Rosbag/raw_data_core_2022-08-18-17-16-31_0.bag
+  - Multi_Floor_Rosbag/raw_data_core_2022-08-18-17-19-00_1.bag
+  - Multi_Floor_Rosbag/raw_data_core_2022-08-18-17-21-29_2.bag
+  topic: /cmu_sp1/velodyne_packets
+  ground_truth: challenge trajectory Floor01 (5 Hz, 6-DoF)
+  map: hawkins_multi_floor.pcd
+preparation:
+  frame_rate_hz: 1.0
+  deskew: true
+  min_range_m: 0.5
+  max_gt_gap_s: 0.3
+  time_offset_s: 0.01256
+  time_offset_method: time_offset (gyro |w| vs ground-truth angular speed), peak correlation
+    0.936; t_bag = t_gt + offset
+  T_gt_lidar:
+  - - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_gt_lidar_method: identity, chosen by map fit (74.3% inliers within 0.3 m vs 50.8%
+    for the hand-eye estimate, yaw -3.2 +- 3.1 deg)
+  T_map_world:
+  - - 0.880534913385
+    - -0.473115885737
+    - -0.0286290931444
+    - 39.9652532331
+  - - 0.472547043258
+    - 0.880962919877
+    - -0.0245687954499
+    - -175.729216329
+  - - 0.0368450569107
+    - 0.00810508885691
+    - 0.999288121272
+    - -5.12748767805
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  T_map_world_method: 'map_align + refine_alignment: 74.3% inliers within 0.3 m (5
+    m shift 26.2%, 20 m shift 18.8%)'
+  labeler: label_sequence --crop-radius 40 --robustness 1 (map voxel 0.2 m, coverage
+    distance 0.5 m)
+results: docs/results/2026-11-12-subt-mrs-floor01-held-out.md
+thresholds_version: 5
+label_definition:
+  monte_carlo:
+    num_samples: 200
+    frame_rate_hz: 1.0
+    max_offset_trans_m: 0.2
+    max_offset_rot_deg: 4.0
+  degeneracy_threshold:
+    trans_m: 0.1
+    rot_deg: 2.0
+  solvers:
+  - point_to_plane_icp
+  - gicp
+  solver_agreement_max_principal_angle_deg: 15.0
+  release:
+    frame_status:
+      consensus: reference refinement converged and the solvers agree
+      disputed: reference refinement converged and the solvers disagree
+      unreliable_reference: reference refinement did not converge
+    consensus_subspace: mean_projector_top_k
+    axis_free_min_projection: 0.5
+release_tool_commit: 593bf82e14d0ffb104ebe0d0732aa995336c53ad
+summary:
+  frames: 413
+  status_counts:
+    consensus: 184
+    disputed: 208
+    unreliable_reference: 21
+  solver_agreement_rate: 0.4694
+  consensus_k_counts:
+    0: 183
+    1: 1
+files:
+  labels.csv: 1a49bd17a2d84df69cb45f9cfc2b26b3ad5076d07e89d2c95b0a984f15f97e80
+  subspaces.csv: cf72f2f7863b6f559978b741177084409a57f0633f9c6c7f949f61fdb9c73bab
